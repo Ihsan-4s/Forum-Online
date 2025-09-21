@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Thread;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ThreadController extends Controller
 {
@@ -12,7 +13,8 @@ class ThreadController extends Controller
      */
     public function index()
     {
-        //
+        $threads = Thread::all();
+        return view('home', compact('threads'));
     }
 
     /**
@@ -20,7 +22,7 @@ class ThreadController extends Controller
      */
     public function create()
     {
-        //
+        return view('threads.create');
     }
 
     /**
@@ -28,7 +30,24 @@ class ThreadController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'tag' => 'nullable|string|max:100',
+
+        ]);
+
+        $createdThread = Thread::create([
+            'user_id' => auth::id(),
+            'title' => $request->title,
+            'content' => $request->content,
+            'tag' => $request->tag,
+        ]);
+        if ($createdThread) {
+            return redirect()->route('threads.index')->with('success', 'Thread created successfully.');
+        } else {
+            return back()->with('error', 'Failed to create thread. Please try again.');
+        }
     }
 
     /**

@@ -136,14 +136,14 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <!-- Navbar brand -->
                 <a class="navbar-brand mt-2 mt-lg-0" href="#">
-                    <img src="{{ asset('images/logo.png') }}" height="40" width="100"
-                        alt="" loading="lazy" />
+                    <img src="{{ asset('images/logo.png') }}" height="40" width="100" alt=""
+                        loading="lazy" />
                 </a>
                 <!-- Left links -->
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     @if (Auth::check() && Auth::user()->role == 'admin')
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Dashboard</a>
+                            <a class="nav-link" href="">Dashboard</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Data</a>
@@ -153,14 +153,9 @@
                         </li>
                     @else
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Dashboard</a>
+                            <a class="nav-link" href="{{ route('home') }}">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Team</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Projects</a>
-                        </li>
+                        
                     @endif
                 </ul>
                 <!-- Left links -->
@@ -170,6 +165,17 @@
             <!-- Right elements -->
             <div class="d-flex align-items-center">
                 @if (Auth::check())
+                    <div class="mx-3">
+                        <nav>
+                            <ul class="list-unstyled d-flex mb-0">
+                                <li><a href="{{ route('threads.create') }}"><button type="button"
+                                            class="btn btn-light mx-2"><i class="fa-solid fa-plus"></i>
+                                            Create</button></a></li>
+                                <li><button type="button" class="btn btn-light"><i
+                                            class="fa-solid fa-bell"></i></button></li>
+                            </ul>
+                        </nav>
+                    </div>
                     <div class="dropdown">
                         <a class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
                             id="navbarDropdownMenuAvatar" role="button" data-bs-toggle="dropdown"
@@ -216,4 +222,5 @@
     </script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.2.0/mdb.umd.min.js"></script>
 </body>
+
 </html>
