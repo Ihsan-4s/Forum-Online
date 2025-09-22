@@ -8,14 +8,33 @@ use Illuminate\Support\Facades\Auth;
 
 class ThreadController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $threads = Thread::all();
-        return view('home', compact('threads'));
+    public function index(Request $request){
+    $query = Thread::with('user');
+
+    if ($request->has('q') && $request->q != '') {
+        $query->where(function($sub) use ($request) {
+            $sub->where('title', 'like', '%' . $request->q . '%')
+                ->orWhere('content', 'like', '%' . $request->q . '%')
+                ->orWhere('tag', 'like', '%' . $request->q . '%');
+        });
     }
+
+    if ($request->has('tag') && $request->tag != '') {
+        $query->where('tag', $request->tag);
+    }
+
+    if ($request->sort == 'oldest') {
+        $query->oldest();
+    } elseif ($request->sort == 'random') {
+        $query->inRandomOrder();
+    } else {
+        $query->latest();
+    }
+
+    $threads = $query->get();
+
+    return view('home', compact('threads'));
+}
 
     /**
      * Show the form for creating a new resource.

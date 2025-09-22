@@ -155,7 +155,10 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('home') }}">Home</a>
                         </li>
-                        
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('home') }}">Your Threads</a>
+                        </li>
+
                     @endif
                 </ul>
                 <!-- Left links -->
@@ -185,7 +188,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
                             <li>
-                                <a class="dropdown-item" href="#">My profile</a>
+                                <a class="dropdown-item" href="{{ route('account') }}">My profile</a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="#">Settings</a>
