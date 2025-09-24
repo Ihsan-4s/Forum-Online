@@ -55,7 +55,7 @@ class UserController extends Controller
             if(Auth::user()->role == 'admin'){
                 return redirect()->route('admin.dashboard')->with('success', 'Login Successful. Welcome Admin.');
                 }
-                return redirect()->route('home')->with('success', 'Login Successful.');
+                return redirect()->route('index')->with('success', 'Login Successful.');
             }else{
                 return redirect()->back()->with('error', 'Login Failed. Please try again.');
             }
@@ -63,7 +63,7 @@ class UserController extends Controller
 
     public function logout(){
         Auth::logout();
-        return redirect()->route('home')->with('success', 'Logout Successful.');
+        return redirect()->route('index')->with('success', 'Logout Successful.');
     }
     /**
      * Display a listing of the resource.

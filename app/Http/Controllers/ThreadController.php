@@ -8,21 +8,16 @@ use Illuminate\Support\Facades\Auth;
 
 class ThreadController extends Controller
 {
-    public function index(Request $request){
-    $query = Thread::with('user');
+    public function index(request $request)
+    {
+        $query = Thread::with('user');
 
-    if ($request->has('q') && $request->q != '') {
-        $query->where(function($sub) use ($request) {
-            $sub->where('title', 'like', '%' . $request->q . '%')
-                ->orWhere('content', 'like', '%' . $request->q . '%')
-                ->orWhere('tag', 'like', '%' . $request->q . '%');
-        });
-    }
-
-    if ($request->has('tag') && $request->tag != '') {
+    // filter by tag (opsional)
+    if ($request->has('tag')) {
         $query->where('tag', $request->tag);
     }
 
+    // urutkan
     if ($request->sort == 'oldest') {
         $query->oldest();
     } elseif ($request->sort == 'random') {
@@ -33,15 +28,15 @@ class ThreadController extends Controller
 
     $threads = $query->get();
 
-    return view('home', compact('threads'));
-}
+        return view('thread.index' , compact('threads'));
+    }
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        return view('threads.create');
+        return view('thread.create');
     }
 
     /**
@@ -50,32 +45,51 @@ class ThreadController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'tag' => 'nullable|string|max:100',
-
+            'title' => 'required',
+            'content' => 'required',
+            'tag' => 'required'
+        ],[
+            'title.required' => 'title harus diisi',
+            'content.required' => 'content harus diisi',
+            'tag.required' => 'tag harus diisi'
         ]);
 
-        $createdThread = Thread::create([
-            'user_id' => auth::id(),
+        $createdata = Thread::create([
             'title' => $request->title,
             'content' => $request->content,
             'tag' => $request->tag,
+            'user_id' => Auth::id(),
         ]);
-        if ($createdThread) {
-            return redirect()->route('threads.index')->with('success', 'Thread created successfully.');
-        } else {
-            return back()->with('error', 'Failed to create thread. Please try again.');
+
+        if($createdata){
+            return redirect()->route('index')->with('success' , 'berhasil membuat thread');
+        }else{
+            return redirect()->back()->with('error' , 'thread gagal ditambah');
         }
+    }
+
+
+    public function draftIndex(){
+        return view('draft.index');
+    }
+
+    public function draftCreate(){
+        return view('draft.create');
+    }
+
+    public function draftStore(){
+        
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Thread $thread)
+    public function show($id)
     {
-        //
+
     }
+
+
 
     /**
      * Show the form for editing the specified resource.

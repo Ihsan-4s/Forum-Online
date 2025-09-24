@@ -10,9 +10,8 @@ class Thread extends Model
     use SoftDeletes;
     protected $fillable = ['user_id','title', 'content', 'tag'];
 
-    public function user()
-{
-    return $this->belongsTo(User::class);
-}
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }
 

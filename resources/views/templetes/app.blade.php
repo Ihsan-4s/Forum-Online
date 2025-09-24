@@ -153,10 +153,10 @@
                         </li>
                     @else
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('home') }}">Home</a>
+                            <a class="nav-link" href="{{ route('index') }}">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('home') }}">Your Threads</a>
+                            <a class="nav-link" href="">Your Threads</a>
                         </li>
 
                     @endif
