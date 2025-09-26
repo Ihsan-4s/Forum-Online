@@ -8,16 +8,17 @@ use Illuminate\Support\Facades\Auth;
 
 class ThreadController extends Controller
 {
-    public function index(request $request)
-    {
-        $query = Thread::with('user');
+    public function index(Request $request)
+{
+    $query = Thread::with('user')
+                ->where('status', 'published');
 
-    // filter by tag (opsional)
+    // filter by tag
     if ($request->has('tag')) {
         $query->where('tag', $request->tag);
     }
 
-    // urutkan
+    // sorting
     if ($request->sort == 'oldest') {
         $query->oldest();
     } elseif ($request->sort == 'random') {
@@ -28,8 +29,9 @@ class ThreadController extends Controller
 
     $threads = $query->get();
 
-        return view('thread.index' , compact('threads'));
-    }
+    return view('thread.index', compact('threads'));
+}
+
 
     /**
      * Show the form for creating a new resource.
@@ -59,6 +61,7 @@ class ThreadController extends Controller
             'content' => $request->content,
             'tag' => $request->tag,
             'user_id' => Auth::id(),
+            'status' => 'published'
         ]);
 
         if($createdata){
@@ -70,16 +73,68 @@ class ThreadController extends Controller
 
 
     public function draftIndex(){
-        return view('draft.index');
+        $drafts = Thread::where('user_id', Auth::id())
+                ->where('status', 'draft')
+                ->latest()
+                ->get();
+
+        return view('draft.index',  compact('drafts'));
     }
 
     public function draftCreate(){
         return view('draft.create');
     }
 
-    public function draftStore(){
-        
+    public function draftStore(Request $request)
+    {
+        $request->validate([
+            'title' => 'required',
+            'content' => 'required',
+            'tag' => 'required'
+        ],[
+            'title.required' => 'title harus diisi',
+            'content.required' => 'content harus diisi',
+            'tag.required' => 'tag harus diisi'
+        ]);
+        $createdata = Thread::create([
+            'title' => $request->title,
+            'content' => $request->content,
+            'tag' => $request->tag,
+            'user_id' => Auth::id(),
+            'status' => 'draft'
+        ]);
+
+        if($createdata){
+            return redirect()->route('index')->with('success' , 'berhasil tersimpan di draft');
+        }else{
+            return redirect()->back()->with('error' , 'gagal ditambah');
+        }
     }
+
+    public function draftEdit($id){
+        $draft = Thread::find($id);
+        return view('draft.edit', compact('draft'));
+    }
+
+    public function draftUpdate(Request $request, $id)
+{
+    $request->validate([
+        'title' => 'required',
+        'content' => 'required',
+        'tag' => 'required'
+    ]);
+
+    $draft = Thread::findOrFail($id);
+
+    $draft->update([
+        'title' => $request->title,
+        'content' => $request->content,
+        'tag' => $request->tag,
+        'status' => 'draft'
+    ]);
+
+    return redirect()->route('drafts.index')->with('success', 'Draft berhasil diperbarui');
+}
 
     /**
      * Display the specified resource.
@@ -114,4 +169,20 @@ class ThreadController extends Controller
     {
         //
     }
+
+    public function urThreadIndex()
+    {
+        $drafts = Thread::where('user_id', Auth::id())
+                    ->where('status', 'draft')
+                    ->latest()
+                    ->get();
+
+        $published = Thread::where('user_id', Auth::id())
+                    ->where('status', 'published')
+                    ->latest()
+                    ->get();
+
+        return view('urThread.index', compact('drafts', 'published'));
+    }
+
 }

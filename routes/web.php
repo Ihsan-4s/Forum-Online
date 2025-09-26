@@ -15,8 +15,13 @@ Route::prefix('/threads')->name('threads.')->group(function(){
 
 Route::prefix('/drafts')->name('drafts.')->group(function(){
     route::get('/', [ThreadController::class, 'draftIndex'])->name('index');
-    route::get('create', [ThreadController::class, 'draftCreate'])->name('create');
     route::post('store',[ThreadController::class, 'draftStore'])->name('store');
+    route::get('/edit/{id}',[ThreadController::class, 'draftEdit'])->name('edit');
+    Route::put('/update/{id}', [ThreadController::class, 'draftUpdate'])->name('update');
+});
+
+Route::prefix('/urThread')->name('urThreads.')->group(function(){
+    route::get('/' , [ThreadController::class, 'urThreadIndex'])->name('index');
 });
 
 // Admin

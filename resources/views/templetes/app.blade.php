@@ -156,7 +156,7 @@
                             <a class="nav-link" href="{{ route('index') }}">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="">Your Threads</a>
+                            <a class="nav-link" href="{{ route('urThreads.index') }}">Your Threads</a>
                         </li>
 
                     @endif

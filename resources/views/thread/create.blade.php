@@ -6,7 +6,7 @@
                 <h5 class="mb-0">Buat Diskusi Baru</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('threads.store') }}">
+                <form id="threadForm" method="POST" action="{{ route('threads.store') }}">
                     @csrf
                     {{-- Title --}}
                     <div class="mb-3">
@@ -46,33 +46,37 @@
                             data-bs-target="#exampleModal">
                             Batal
                         </button>
-
-                        <!-- Modal -->
-                        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-                            aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        Menjadikan ini sebagai draft akan menyimpan progressmu dalam membuat diskusi
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Lanjutkan</button>
-                                        <a href="" class="btn btn-primary">Jadikan Draft</a>
-                                        <a href="{{ route('index') }}" class="btn btn-primary">Kembali</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <button type="submit" class="btn btn-success">Kirim Diskusi</button>
                     </div>
                 </form>
+                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Menjadikan ini sebagai draft akan menyimpan progressmu dalam membuat diskusi
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Lanjutkan</button>
+                                <button type="submit" class="btn btn-primary" onclick="saveAsDraft()">Jadikan Draft</button>
+                                <a href="{{ route('index') }}" class="btn btn-primary">Kembali</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    <script>
+        function saveAsDraft(){
+            let form = document.getElementById('threadForm')
+            form.action= "{{ route('drafts.store') }}";
+            form.submit();
+        }
+    </script>
 @endsection

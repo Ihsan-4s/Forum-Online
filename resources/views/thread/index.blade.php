@@ -2,7 +2,9 @@
 
 @section('content')
     <div class="container my-5">
-
+        @if (Session::get('success'))
+            <div class="alert alert-success">{{ Session::get('success') }}</div>
+        @endif
         {{-- Hero Section --}}
         <div class="p-4 mb-4 bg-light rounded shadow-sm">
             <h4 class="mb-1">Selamat Datang di Forum Diskusi </h4>
@@ -13,7 +15,7 @@
             {{-- Sidebar kiri --}}
             <div class="col-md-3 mb-4">
                 <div class="position-sticky" style="top: 20px;">
-                    <button class="btn btn-success w-100 mb-3">Buat diskusi baru</button>
+                    <a href="{{ route('threads.create') }}" class="btn btn-success w-100 mb-3">Buat diskusi baru</a>
                     <a href="{{ route('drafts.index') }}" class="btn btn-outline-success w-100 mb-4">Draft</a>
 
                     <h6 class="fw-bold">Filter berdasarkan</h6>
@@ -27,14 +29,19 @@
                     </div>
 
                     <h6 class="fw-bold">Urutkan berdasarkan</h6>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="urutkan" id="baru" checked>
-                        <label class="form-check-label" for="baru">Diskusi Terbaru</label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="urutkan" id="lama">
-                        <label class="form-check-label" for="lama">Diskusi Terlama</label>
-                    </div>
+                    <form method="GET" action="{{ route('index') }}">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sort" id="baru" value="latest"
+                                onchange="this.form.submit()" {{ request('sort', 'latest') == 'latest' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="baru">Diskusi Terbaru</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="sort" id="lama" value="oldest"
+                                onchange="this.form.submit()" {{ request('sort') == 'oldest' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="lama">Diskusi Terlama</label>
+                        </div>
+                    </form>
+
 
                     <h6 class="fw-bold">Kata kunci populer</h6>
                     <div class="d-flex flex-wrap gap-1">
@@ -56,23 +63,24 @@
                 </form>
 
                 {{-- Card diskusi --}}
-                @foreach ( $threads as $thread )
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title fw-bold">{{$thread['title']}}</h6>
-                        <p class="text-muted small mb-2">{{ $thread->user->name }} . {{ $thread->created_at->diffForHumans() }} </p>
-                        <p class="card-text">{{$thread['content']}}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>
-                                <span class="badge bg-secondary">{{$thread['tag']}}</span>
-                            </span>
-                            <span class="text-success fw-bold">SELESAI</span>
+                @foreach ($threads as $thread)
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold">{{ $thread['title'] }}</h6>
+                            <p class="text-muted small mb-2">{{ $thread->user->name }} .
+                                {{ $thread->created_at->diffForHumans() }} </p>
+                            <p class="card-text">{{ $thread['content'] }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>
+                                    <span class="badge bg-secondary">{{ $thread['tag'] }}</span>
+                                </span>
+                                <span class="text-success fw-bold">SELESAI</span>
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            18 Pembahasan • Latihan: Same-Origin Policy
                         </div>
                     </div>
-                    <div class="card-footer text-muted small">
-                        18 Pembahasan • Latihan: Same-Origin Policy
-                    </div>
-                </div>
                 @endforeach
             </div>
         </div>
