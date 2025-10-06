@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Thread;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ThreadController extends Controller
 {
@@ -45,31 +46,45 @@ class ThreadController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required',
-            'content' => 'required',
-            'tag' => 'required'
-        ],[
-            'title.required' => 'title harus diisi',
-            'content.required' => 'content harus diisi',
-            'tag.required' => 'tag harus diisi'
-        ]);
+{
+    $request->validate([
+        'title' => 'required',
+        'content' => 'required',
+        'tag' => 'required',
+        'image' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048'
+    ], [
+        'title.required' => 'title harus diisi',
+        'content.required' => 'content harus diisi',
+        'tag.required' => 'tag harus diisi',
+        'image.image' => 'file yang diunggah harus berupa gambar',
+        'image.mimes' => 'format image harus sesuai (png, jpg, jpeg, svg)',
+        'image.max' => 'ukuran maksimal 2MB'
+    ]);
+    $filePath = null;
 
-        $createdata = Thread::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'tag' => $request->tag,
-            'user_id' => Auth::id(),
-            'status' => 'published'
-        ]);
 
-        if($createdata){
-            return redirect()->route('index')->with('success' , 'berhasil membuat thread');
-        }else{
-            return redirect()->back()->with('error' , 'thread gagal ditambah');
-        }
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        $fileName = 'image-' . rand(1,100) . '.' . $file->getClientOriginalExtension();
+        $filePath = $file->storeAs('image', $fileName, 'public');
     }
+
+    $createData = Thread::create([
+        'title' => $request->title,
+        'content' => $request->content,
+        'image' => $filePath,
+        'tag' => $request->tag,
+        'user_id' => Auth::id(),
+        'status' => 'published'
+    ]);
+
+    if ($createData) {
+        return redirect()->route('index')->with('success', 'Berhasil membuat thread');
+    } else {
+        return redirect()->back()->with('error', 'Thread gagal ditambah');
+    }
+}
+
 
 
     public function draftIndex(){

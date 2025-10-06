@@ -46,7 +46,7 @@
         }
 
         .navbar .nav-link:hover {
-            color: #18cb96 !important;
+            color: #3b82f6 !important;
         }
 
         /* Underline hover */
@@ -57,7 +57,7 @@
             bottom: 4px;
             width: 0%;
             height: 2px;
-            background-color: #18cb96;
+            background-color: #3b82f6;
             transition: width 0.3s ease;
         }
 
@@ -67,7 +67,7 @@
 
         /* Active state */
         .navbar .nav-link.active {
-            color: #18cb96 !important;
+            color: #3b82f6 !important;
             font-weight: 600;
         }
 
@@ -92,7 +92,7 @@
 
         .dropdown-item:hover {
             background: rgba(13, 202, 240, 0.15);
-            color: #18cb96;
+            color: #3b82f6;
             border-radius: 6px;
         }
 
@@ -103,8 +103,8 @@
         }
 
         .navbar img.rounded-circle:hover {
-            border-color: #18cb96;
-            box-shadow: 0 0 8px #18cb96;
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px #3b82f6;
         }
 
         /* Animasi Dropdown */

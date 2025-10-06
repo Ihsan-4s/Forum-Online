@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Thread extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['user_id','title', 'content', 'tag','status'];
+    protected $fillable = ['user_id','title', 'content', 'image' ,'tag','status'];
 
     public function user(){
         return $this->belongsTo(User::class);
