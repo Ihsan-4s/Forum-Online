@@ -154,9 +154,10 @@ class ThreadController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Thread $thread)
     {
-
+        $thread->load(['user','comments.user','tags']);
+        return view('thread.show',compact('thread'));
     }
 
 

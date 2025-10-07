@@ -27,6 +27,7 @@ class User extends Authenticatable
     public function threads(){
         return $this->hasMany(Thread::class);
     }
+    
 
     /**
      * The attributes that should be hidden for serialization.

@@ -11,6 +11,11 @@ Route::get('/', [ThreadController::class, 'index'])->name('index');
 Route::prefix('/threads')->name('threads.')->group(function(){
     route::get('create', [ThreadController::class, 'create'])->name('create');
     route::post('store', [ThreadController::class, 'store'])->name('store');
+    route::get('/threads/{thread}',[ThreadController::class,'show'])->name('show');
+});
+
+route::prefix('/comments')->name('comments.')->group(function(){
+
 });
 
 Route::prefix('/drafts')->name('drafts.')->group(function(){

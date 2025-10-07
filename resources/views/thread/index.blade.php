@@ -8,14 +8,23 @@
 
         <div class="row">
             {{-- KIRI - Profil & Shortcut --}}
+
             <div class="col-lg-3 mb-4">
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body text-center">
-                        <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" class="rounded-circle mb-3"
-                            width="80">
-                        <h6 class="fw-bold mb-0">{{ Auth::user()->name }}</h6>
-                        <p class="text-muted small">{{ '@' . Str::slug(Auth::user()->name, '_') }}</p>
-                        <a href="#" class="btn btn-primary btn-sm w-100 rounded-pill">My Profile</a>
+                        @auth
+
+                            <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" class="rounded-circle mb-3"
+                                width="80">
+                            <h6 class="fw-bold mb-0">{{ Auth::user()->name }}</h6>
+                            <p class="text-muted small">{{ '@' . Str::slug(Auth::user()->name, '_') }}</p>
+                            <a href="#" class="btn btn-primary btn-sm w-100 rounded-pill">My Profile</a>
+                        @else
+                            <img src="https://ui-avatars.com/api/?name=Guest" class="rounded-circle mb-3" width="80">
+                            <h6 class="fw-bold mb-0">Guest User</h6>
+                            <p class="text-muted small">@anonymous</p>
+                            <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm w-100 rounded-pill">Login</a>
+                        @endauth
                     </div>
                     <div class="card-footer bg-white text-center small text-muted">
                         <span class="mx-2">250 Posts</span>•<span class="mx-2">2022 Followers</span>•<span
@@ -39,9 +48,14 @@
             <div class="col-lg-6 mb-4">
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body d-flex align-items-center">
-                        <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" class="rounded-circle me-3"
-                            width="50">
-                        <input type="text" class="form-control rounded-pill" placeholder="Tulis sesuatu...">
+                        @auth
+                            <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" class="rounded-circle me-3"
+                                width="50">
+                            <input type="text" class="form-control rounded-pill" placeholder="Tulis sesuatu...">
+                        @else
+                            <img src="https://ui-avatars.com/api/?name=Guest" class="rounded-circle me-3" width="50">
+                            <input type="text" class="form-control rounded-pill" placeholder="Tulis sesuatu...">
+                        @endauth
                     </div>
                     <div class="card-footer bg-white">
                         <button class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-image"></i> Image</button>
@@ -52,62 +66,47 @@
                 </div>
 
                 @foreach ($threads as $thread)
-                    <div class="card mb-3 shadow-sm border-0">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-2">
-                                <img src="https://ui-avatars.com/api/?name={{ $thread->user->name }}"
-                                    class="rounded-circle me-2" width="40">
-                                <div>
-                                    <h6 class="mb-0 fw-bold">{{ $thread->user->name }}</h6>
-                                    <small class="text-muted">{{ $thread->created_at->diffForHumans() }}</small>
+                    <div class="card mb-3 border-0 shadow-sm p-3 rounded-3">
+                        <div class="d-flex align-items-start">
+                            <img src="https://ui-avatars.com/api/?name={{ $thread->user->name }}"
+                                class="rounded-circle me-3" width="45" height="45" alt="{{ $thread->user->name }}">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="fw-semibold mb-0">{{ $thread->user->name }}</h6>
+                                        <small class="text-muted">{{ $thread->created_at->diffForHumans() }}</small>
+                                    </div>
+                                    <span
+                                        class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">SELESAI</span>
                                 </div>
-                            </div>
-                            <h5>{{$thread->title}}</h5>
-                            <img src="{{ asset('storage/' . $thread['image']) }}" class="rounded me-2" width="200">
-                            <p class="mb-2">{{ $thread->content }}</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-light text-dark border">#{{ $thread->tag }}</span>
-                                <div class="text-muted small">
-                                    <i class="bi bi-heart me-1"></i>18
-                                    <i class="bi bi-chat-left-text ms-3 me-1"></i>5
+
+                                <div class="mt-2">
+                                    <h5 class="fw-bold mb-1 text-dark">{{ $thread->title }}</h5>
+                                    @if ($thread->image)
+                                        <img src="{{ asset('storage/' . $thread->image) }}" class="rounded mb-2"
+                                            width="200">
+                                    @endif
+                                    <p class="text-muted mb-2" style="font-size: 0.95rem;">
+                                        {{ Str::limit($thread->content, 180, '...') }}
+                                    </p>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="badge bg-light text-dark border">#{{ $thread->tag }}</span>
+                                    <div class="text-muted small">
+                                        <a href="{{ route('threads.show', $thread) }}" class="btn btn-outline-secondary btn-sm me-2">412 Pembahasan</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 @endforeach
+
             </div>
 
             {{-- KANAN - Aktivitas & Saran --}}
             <div class="col-lg-3">
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3">Aktivitas Terbaru</h6>
-                        <p class="small mb-1"><strong>Dera</strong> started following you · 5m</p>
-                        <p class="small mb-1"><strong>Ediwp</strong> liked your photo · 30m</p>
-                        <p class="small mb-0"><strong>Praha_</strong> liked your photo · 1d</p>
-                    </div>
-                </div>
 
-                <div class="card shadow-sm border-0">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3">Disarankan untuk Anda</h6>
-                        <div class="d-flex align-items-center mb-2">
-                            <img src="https://ui-avatars.com/api/?name=Najid" class="rounded-circle me-2" width="35">
-                            <div class="flex-grow-1">
-                                <small class="fw-bold d-block">Najid</small>
-                                <button class="btn btn-outline-primary btn-sm py-0 px-2">Follow</button>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <img src="https://ui-avatars.com/api/?name=Sheila+Dara" class="rounded-circle me-2"
-                                width="35">
-                            <div class="flex-grow-1">
-                                <small class="fw-bold d-block">Sheila Dara</small>
-                                <button class="btn btn-outline-primary btn-sm py-0 px-2">Follow</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
