@@ -1,41 +1,69 @@
 @extends('templetes.app')
 @section('content')
-    <div class="container">
-
-        <h1 class="text-2xl font-bold">{{ $thread->title }}</h1>
-        <p class="text-gray-700 mt-2">{{ $thread->content }}</p>
-
-        <p class="text-sm text-gray-500 mt-1">
-            Dibuat oleh: {{ $thread->user->name }} • {{ $thread->created_at->diffForHumans() }}
+    <div class="container my-5">
+        <h1 class="fw-bold fs-3">{{ $thread->title }}</h1>
+        <p class="text-muted mt-2">{{ $thread->content }}</p>
+        <p class="text-secondary small mt-1">
+            Dibuat oleh: <strong>{{ $thread->user->name }}</strong> • {{ $thread->created_at->diffForHumans() }}
         </p>
-
         @if ($thread->tags->isNotEmpty())
             <div class="mt-2">
                 @foreach ($thread->tags as $tag)
-                    <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm">{{ $tag->name }}</span>
+                    <span class="badge bg-primary me-1">{{ $tag->name }}</span>
                 @endforeach
             </div>
         @endif
-
-        <hr class="my-6">
-
-        <h2 class="text-xl font-semibold mb-2">Komentar</h2>
-
-        @foreach ($thread->comments as $comment)
-            <div class="border-t py-2">
-                <strong>{{ $comment->user->name }}</strong>
-                <p>{{ $comment->content }}</p>
-                <small class="text-gray-500">{{ $comment->created_at->diffForHumans() }}</small>
-            </div>
-        @endforeach
-
+        <hr class="my-4">
+        <h2 class="fs-5 fw-semibold mb-3">Komentar</h2>
         @auth
-            <form action="" method="POST" class="mt-4">
-                @csrf
-                <textarea name="content" class="w-full border rounded p-2" rows="3" placeholder="Tulis komentar..." required></textarea>
-                <button type="submit" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded">Kirim</button>
-            </form>
+            <!-- Komentar Section -->
+            <div class="bg-white p-4 rounded shadow-sm mt-5">
+                <!-- Input Komentar -->
+                <div class="d-flex align-items-start gap-3 mb-4">
+                    <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" class="rounded-circle border"
+                        width="50" height="50" alt="">
+                    <form action="{{ route('comments.store') }}" method="POST" class="flex-grow-1 w-100">
+                        @csrf
+                        <input type="hidden" name="thread_id" value="{{ $thread->id }}">
+                        <div class="mb-2">
+                            <textarea name="content" class="form-control" rows="3" placeholder="Tulis komentar Anda..." required></textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                Kirim
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         @endauth
-
+        <h5 class="fw-bold my-4">Comment Section</h5>
+        @foreach ($thread->comments as $comment)
+        <div class="card mb-3 border-0 shadow-sm rounded-3">
+            <div class="card-body">
+                <div class="d-flex align-items-start gap-3">
+                    <img src="https://ui-avatars.com/api/?name={{ $comment->user->name }}" class="rounded-circle"
+                            width="40" height="40" alt="">
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-semibold">{{ $comment->user->name }}</h6>
+                            <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+                        </div>
+                        <p class="text-muted mb-2 mt-1">{{ $comment->content }}</p>
+                        <div class="d-flex align-items-center gap-3 text-muted small">
+                            <button class="btn btn-link p-0 text-decoration-none text-secondary"><i
+                                    class="fa-regular fa-comment"></i> Balas</button>
+                            <button class="btn btn-link p-0 text-decoration-none text-secondary"><i
+                                    class="fa-regular fa-share-from-square"></i> Bagikan</button>
+                            <div class="ms-auto d-flex align-items-center gap-2">
+                                <i class="fa-regular fa-thumbs-up"></i> 0
+                                <i class="fa-regular fa-thumbs-down ms-2"></i> 0
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endforeach
     </div>
 @endsection

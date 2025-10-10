@@ -12,7 +12,8 @@ class ThreadController extends Controller
     public function index(Request $request)
 {
     $query = Thread::with('user')
-                ->where('status', 'published');
+                ->where('status', 'published')
+                ->withCount('comments');
 
     // filter by tag
     if ($request->has('tag')) {

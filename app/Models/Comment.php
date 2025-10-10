@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Comment extends Model
 {
+
+    use hasFactory;
+
     protected $fillable = ['thread_id', 'user_id', 'content'];
 
     public function thread(){
@@ -13,7 +17,7 @@ class Comment extends Model
     }
 
     public function user(){
-        return $this->beforeQuery(User::class);
+        return $this->belongsTo(User::class);
     }
 }
 

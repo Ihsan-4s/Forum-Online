@@ -12,11 +12,9 @@ Route::prefix('/threads')->name('threads.')->group(function(){
     route::get('create', [ThreadController::class, 'create'])->name('create');
     route::post('store', [ThreadController::class, 'store'])->name('store');
     route::get('/threads/{thread}',[ThreadController::class,'show'])->name('show');
+    route::post('/threads/{thread}/comments', [CommentController::class, 'store'])->name('threads.comments.store');
 });
 
-route::prefix('/comments')->name('comments.')->group(function(){
-
-});
 
 Route::prefix('/drafts')->name('drafts.')->group(function(){
     route::get('/', [ThreadController::class, 'draftIndex'])->name('index');
