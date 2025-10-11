@@ -13,10 +13,10 @@
                         @auth
                             <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" class="rounded-circle me-3"
                                 width="50">
-                            <input type="text" class="form-control rounded-pill" placeholder="Tulis sesuatu...">
+                            <input type="text" class="form-control rounded-pill" placeholder="Search...">
                         @else
                             <img src="https://ui-avatars.com/api/?name=Guest" class="rounded-circle me-3" width="50">
-                            <input type="text" class="form-control rounded-pill" placeholder="Tulis sesuatu...">
+                            <input type="text" class="form-control rounded-pill" placeholder="Search...">
                         @endauth
                     </div>
                 </div>

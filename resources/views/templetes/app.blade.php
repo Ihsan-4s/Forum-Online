@@ -135,8 +135,8 @@
                     <a href="{{ route('index') }}" class="nav-link active"><i
                             class="fa-solid fa-house"></i><span>Home</span></a>
                 </li>
-                <li><a href="" class="nav-link"><i
-                            class="fa-solid fa-tag"></i><span>Tags</span></a></li>
+                <li><a href="{{ route('threads.create') }}" class="nav-link"><i class="fa-solid fa-plus"></i><span>Create Thread</span></a></li>
+                <li><a href="" class="nav-link"><i class="fa-solid fa-tag"></i><span>Tags</span></a></li>
                 <li><a href="#" class="nav-link"><i class="fa-solid fa-bookmark"></i><span>Saved</span></a></li>
                 <li><a href="#" class="nav-link"><i class="fa-solid fa-trash"></i><span>Trash</span></a></li>
             </ul>
@@ -149,7 +149,7 @@
             <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name ?? 'Guest') }}" alt="">
             <div>
                 <strong>{{ Auth::user()->name ?? 'Guest' }}</strong><br>
-                <small class="text-muted">{{ Auth::check() ? 'Pro trial' : 'Not logged in' }}</small>
+                <small class="text-muted">{{ Auth::check() ? 'Logged in' : 'Not logged in' }}</small>
             </div>
         </a>
     </div>

@@ -19,7 +19,6 @@ class ThreadController extends Controller
     if ($request->has('tag')) {
         $query->where('tag', $request->tag);
     }
-
     // sorting
     if ($request->sort == 'oldest') {
         $query->oldest();
@@ -94,12 +93,9 @@ class ThreadController extends Controller
                 ->latest()
                 ->get();
 
-        return view('draft.index',  compact('drafts'));
+        return view('account',  compact('drafts'));
     }
 
-    public function draftCreate(){
-        return view('draft.create');
-    }
 
     public function draftStore(Request $request)
     {
@@ -121,7 +117,7 @@ class ThreadController extends Controller
         ]);
 
         if($createdata){
-            return redirect()->route('index')->with('success' , 'berhasil tersimpan di draft');
+            return redirect()->route('account.index')->with('success' , 'berhasil tersimpan di draft');
         }else{
             return redirect()->back()->with('error' , 'gagal ditambah');
         }

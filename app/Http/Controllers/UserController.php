@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Thread;
 
 
 class UserController extends Controller
@@ -69,9 +70,24 @@ class UserController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        //
-    }
+{
+    $userId = Auth::id();
+
+    $threads = Thread::where('user_id', $userId)
+        ->where('status', 'published')
+        ->latest()
+        ->get();
+
+    $drafts = Thread::where('user_id', $userId)
+        ->where('status', 'draft')
+        ->latest()
+        ->get();
+
+    return view('account', compact('threads', 'drafts'));
+}
+
+
+
 
     /**
      * Show the form for creating a new resource.
