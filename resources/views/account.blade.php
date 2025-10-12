@@ -124,6 +124,14 @@
                                                             {{ Str::limit($draft->content, 180, '...') }}
                                                         </p>
                                                     </div>
+                                                    <div class="d-flex ">
+                                                        <a href="{{ route('drafts.edit', $draft->id) }}" class="btn btn-primary">Edit</a>
+                                                        <form action="{{ route('drafts.destroy', $draft->id) }}" method="POST" class="ms-2">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

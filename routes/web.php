@@ -21,6 +21,7 @@ Route::prefix('/drafts')->name('drafts.')->group(function(){
     route::post('store',[ThreadController::class, 'draftStore'])->name('store');
     route::get('/edit/{id}',[ThreadController::class, 'draftEdit'])->name('edit');
     Route::put('/update/{id}', [ThreadController::class, 'draftUpdate'])->name('update');
+    Route::delete('/destroy/{id}', [ThreadController::class, 'draftDestroy'])->name('destroy');
 });
 
 Route::prefix('/urThread')->name('urThreads.')->group(function(){

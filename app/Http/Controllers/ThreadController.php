@@ -96,6 +96,7 @@ class ThreadController extends Controller
         return view('account',  compact('drafts'));
     }
 
+    
 
     public function draftStore(Request $request)
     {
@@ -145,8 +146,22 @@ class ThreadController extends Controller
         'status' => 'draft'
     ]);
 
-    return redirect()->route('drafts.index')->with('success', 'Draft berhasil diperbarui');
+    return redirect()->route('account.index')->with('success', 'Draft berhasil diperbarui');
 }
+
+    public function draftDestroy($id)
+    {
+        $draft = Thread::findOrFail($id);
+
+        // Hapus gambar terkait jika ada
+        if ($draft->image) {
+            Storage::disk('public')->delete($draft->image);
+        }
+
+        $draft->delete();
+
+        return redirect()->route('account.index')->with('success', 'Draft berhasil dihapus');
+    }
 
     /**
      * Display the specified resource.
