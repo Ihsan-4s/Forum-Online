@@ -96,29 +96,44 @@ class ThreadController extends Controller
         return view('account',  compact('drafts'));
     }
 
-    
+
 
     public function draftStore(Request $request)
     {
         $request->validate([
             'title' => 'required',
             'content' => 'required',
-            'tag' => 'required'
+            'tag' => 'required',
+            'image' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048'
         ],[
             'title.required' => 'title harus diisi',
             'content.required' => 'content harus diisi',
-            'tag.required' => 'tag harus diisi'
+            'tag.required' => 'tag harus diisi',
+            'image.image' => 'file yang diunggah harus berupa gambar',
+            'image.mimes' => 'format image harus sesuai (png, jpg, jpeg, svg)',
+            'image.max' => 'ukuran maksimal 2MB'
         ]);
+        $filePath = null;
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $fileName = 'image-' . rand(1,100) . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs('image', $fileName, 'public');
+        }
+        
         $createdata = Thread::create([
             'title' => $request->title,
             'content' => $request->content,
+            'image' => $filePath,
             'tag' => $request->tag,
             'user_id' => Auth::id(),
             'status' => 'draft'
         ]);
 
+
+
         if($createdata){
-            return redirect()->route('account.index')->with('success' , 'berhasil tersimpan di draft');
+            return redirect()->route('account')->with('success' , 'berhasil tersimpan di draft');
         }else{
             return redirect()->back()->with('error' , 'gagal ditambah');
         }

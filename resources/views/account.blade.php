@@ -117,7 +117,6 @@
                                                         <span
                                                             class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1">DRAFT</span>
                                                     </div>
-
                                                     <div class="mt-2">
                                                         <h5 class="fw-bold mb-1 text-dark">{{ $draft->title }}</h5>
                                                         <p class="text-muted mb-2" style="font-size: 0.95rem;">
