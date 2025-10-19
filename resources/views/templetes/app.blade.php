@@ -132,21 +132,35 @@
 
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a href="{{ route('index') }}" class="nav-link active"><i
-                            class="fa-solid fa-house"></i><span>Home</span></a>
+                    <a href="{{ route('index') }}" class="nav-link {{ request()->routeIs('index') ? 'active' : '' }}">
+                        <i class="fa-solid fa-house"></i><span>Home</span>
+                    </a>
                 </li>
-                <li><a href="{{ route('threads.create') }}" class="nav-link"><i class="fa-solid fa-plus"></i><span>Create Thread</span></a></li>
-                <li><a href="" class="nav-link"><i class="fa-solid fa-tag"></i><span>Tags</span></a></li>
-                <li><a href="#" class="nav-link"><i class="fa-solid fa-bookmark"></i><span>Saved</span></a></li>
-                <li><a href="#" class="nav-link"><i class="fa-solid fa-trash"></i><span>Trash</span></a></li>
+                <li>
+                    <a href="{{ route('threads.create') }}"
+                        class="nav-link {{ request()->routeIs('threads.create') ? 'active' : '' }}">
+                        <i class="fa-solid fa-plus"></i><span>Create Thread</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="" class="nav-link {{ request()->routeIs('notification') ? 'active' : '' }}">
+                        <i class="fa-solid fa-bell"></i><span>Notifications</span>
+
+                    </a>
+                </li>
             </ul>
         </div>
 
 
-        <a href="{{ Auth::check() ? route('account') : route('login') }}"
+        <a href="{{ Auth::check() ? route('account.index') : route('login') }}"
             class="user-footer d-flex align-items-center gap-2 text-decoration-none text-reset" role="button"
             tabindex="0" title="{{ Auth::check() ? 'View profile' : 'Login' }}">
-            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name ?? 'Guest') }}" alt="">
+            @if (Auth::check() && Auth::user()->profile_picture)
+                <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" class="rounded-circle mb-3"
+                    width="80" height="80" style="object-fit: cover">
+            @else
+                <img src="https://ui-avatars.com/api/?name=Guest" class="rounded-circle mb-3" width="80">
+            @endif
             <div>
                 <strong>{{ Auth::user()->name ?? 'Guest' }}</strong><br>
                 <small class="text-muted">{{ Auth::check() ? 'Logged in' : 'Not logged in' }}</small>

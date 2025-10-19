@@ -21,13 +21,14 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
+        'role',
+        'profile_picture',
     ];
 
     public function threads(){
         return $this->hasMany(Thread::class);
     }
-    
+
 
     /**
      * The attributes that should be hidden for serialization.

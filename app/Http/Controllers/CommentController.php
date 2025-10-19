@@ -6,78 +6,36 @@ use App\Models\Comment;
 use App\Models\Thread;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\ThreadCommented;
 
 class CommentController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Store a newly created comment in storage.
      */
-    public function index()
-    {
-
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(Request $request, Thread $thread)
     {
         // Validasi input
         $request->validate([
             'content' => 'required|string',
-            'thread_id' => 'required|exists:threads,id',
         ]);
 
         // Simpan komentar ke database
-        Comment::create([
+        $comment = Comment::create([
             'content' => $request->input('content'),
-            'thread_id' => $request->input('thread_id'),
+            'thread_id' => $thread->id,  // ambil dari route model binding
             'user_id' => Auth::id(),
         ]);
 
+        // Pastikan relasi user ter-load supaya nama bisa dipakai di notifikasi
+        $comment->load('user');
+
+        // Kirim notifikasi ke pemilik thread, kecuali komentar sendiri
+        if ($thread->user_id !== Auth::id()) {
+            $thread->user->notify(new ThreadCommented($comment, $thread));
+        }
+
         // Redirect balik ke halaman thread dengan pesan sukses
         return redirect()->back()->with('success', 'Komentar berhasil ditambahkan.');
-    }
-
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Comment $comment)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Comment $comment)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Comment $comment)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Comment $comment)
-    {
-        //
     }
 }

@@ -93,8 +93,13 @@
 
                     {{-- User Avatar & Title --}}
                     <div class="d-flex align-items-center mb-4">
-                        <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" class="rounded-circle me-3"
-                            width="50">
+                        @if (Auth::user()->profile_picture)
+                            <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" class="rounded-circle me-3"
+                                width="50" height="50" alt="{{ Auth::user()->name }}">
+                        @else
+                            <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" class="rounded-circle me-3"
+                                width="50" height="50" alt="{{ Auth::user()->name }}">
+                        @endif
                         <input type="text" name="title"
                             class="form-control fs-5 fw-semibold border-0 border-bottom @error('title') is-invalid @enderror"
                             placeholder="What's new?">
@@ -119,15 +124,12 @@
                     </div>
 
                     {{-- Tag --}}
-                    <div class="mb-4">
-                        <input type="text" name="tag"
-                            class="form-control @error('tag') is-invalid @enderror"
-                            placeholder="#javascript #backend">
-                        <div class="form-text text-muted">Pisahkan tag dengan spasi atau tanda koma.</div>
-                        @error('tag')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Tags (pisahkan dengan koma)</label>
+                        <input type="text" name="tags" id="tags" class="form-control"
+                            placeholder="contoh: laravel, php, backend">
                     </div>
+
 
                     {{-- Action Buttons --}}
                     <div class="d-flex justify-content-between align-items-center border-top pt-3">
@@ -148,21 +150,20 @@
     </div>
 
     {{-- Modal Draft --}}
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content p-3">
                 <div class="modal-header border-0">
                     <h5 class="modal-title fw-semibold" id="exampleModalLabel">Simpan sebagai Draft?</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-muted">
                     Menjadikan ini sebagai draft akan menyimpan progressmu dalam membuat diskusi.
                 </div>
                 <div class="modal-footer border-0">
                     <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Lanjutkan</button>
-                    <button type="submit" class="btn btn-primary rounded-pill" onclick="saveAsDraft()">Jadikan Draft</button>
+                    <button type="submit" class="btn btn-primary rounded-pill" onclick="saveAsDraft()">Jadikan
+                        Draft</button>
                     <a href="{{ route('index') }}" class="btn btn-outline-primary rounded-pill">Kembali</a>
                 </div>
             </div>

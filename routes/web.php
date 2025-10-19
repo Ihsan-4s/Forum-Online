@@ -3,17 +3,26 @@
 use App\Http\Controllers\ThreadController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\LikeController;
 use Illuminate\Support\Facades\Route;
 
 // Home → feed (threads)
 Route::get('/', [ThreadController::class, 'index'])->name('index');
 
 Route::prefix('/threads')->name('threads.')->group(function(){
-    route::get('create', [ThreadController::class, 'create'])->name('create');
-    route::post('store', [ThreadController::class, 'store'])->name('store');
-    route::get('/threads/{thread}',[ThreadController::class,'show'])->name('show');
-    route::post('/threads/{thread}/comments', [CommentController::class, 'store'])->name('threads.comments.store');
+    Route::get('create', [ThreadController::class, 'create'])->name('create');
+    Route::post('store', [ThreadController::class, 'store'])->name('store');
+    Route::get('{thread}', [ThreadController::class, 'show'])->name('show');
+    Route::delete('{thread}', [ThreadController::class, 'destroy'])->name('destroy');
+    Route::post('{thread}/comments', [CommentController::class, 'store'])->name('comments.store');
 });
+
+
+Route::get('/tags/{tag}', [ThreadController::class, 'filterByTag'])->name('tags.show');
+
+Route::post('/like/toggle', [LikeController::class, 'toggle'])->middleware('auth')->name('like.toggle');
+
+
 
 
 Route::prefix('/drafts')->name('drafts.')->group(function(){
@@ -22,6 +31,7 @@ Route::prefix('/drafts')->name('drafts.')->group(function(){
     route::get('/edit/{id}',[ThreadController::class, 'draftEdit'])->name('edit');
     Route::put('/update/{id}', [ThreadController::class, 'draftUpdate'])->name('update');
     Route::delete('/destroy/{id}', [ThreadController::class, 'draftDestroy'])->name('destroy');
+    route::put('publish/{id}', [ThreadController::class, 'draftPublish'])->name('publish');
 });
 
 Route::prefix('/urThread')->name('urThreads.')->group(function(){
@@ -34,7 +44,12 @@ Route::get('/admin', function () {
 })->name('admin.dashboard');
 
 // account
-Route::get('/account', [UserController::class, 'index'])->name('account');
+Route::prefix('/account')->name('account.')->group(function () {
+    route::get('/', [UserController::class, 'index'])->name('index');
+    route::post('/upload', [UserController::class, 'updateProfilePicture'])->name('upload');
+});
+
+
 
 // Auth
 Route::get('/login', function () {

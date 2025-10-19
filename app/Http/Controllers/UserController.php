@@ -97,13 +97,30 @@ class UserController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function updateProfilePicture(Request $request)
+    {
+        if (!Auth::check()) {
+            return back()->with('error', 'You must be logged in.');
+        }
+
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $file = $request->file('profile_picture');
+        $fileName = uniqid('profile_') . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('profile_pictures', $fileName, 'public');
+
+        User::where('id', Auth::id())->update(['profile_picture' => $path]);
+
+        return back()->with('success', 'Profile picture updated successfully.');
+    }
+
     public function store(Request $request)
     {
         //
     }
+
 
     /**
      * Display the specified resource.

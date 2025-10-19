@@ -9,82 +9,94 @@ use Illuminate\Support\Facades\Storage;
 
 class ThreadController extends Controller
 {
-    public function index(Request $request)
+    public function index()
 {
-    $query = Thread::with('user')
-                ->where('status', 'published')
-                ->withCount('comments');
+    $threads = Thread::with(['user', 'tags'])
+        ->withCount('comments')
+        ->latest()
+        ->get();
 
-    // filter by tag
-    if ($request->has('tag')) {
-        $query->where('tag', $request->tag);
-    }
-    // sorting
-    if ($request->sort == 'oldest') {
-        $query->oldest();
-    } elseif ($request->sort == 'random') {
-        $query->inRandomOrder();
-    } else {
-        $query->latest();
-    }
+    $popularTags = \App\Models\Tag::withCount('threads')
+        ->orderByDesc('threads_count')
+        ->take(10)
+        ->get();
 
-    $threads = $query->get();
+        
 
-    return view('thread.index', compact('threads'));
+    return view('thread.index', [
+        'threads' => $threads,
+        'popularTags' => $popularTags,
+        'tagName' => null
+    ]);
 }
 
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('thread.create');
+        $tags = \App\Models\Tag::all();
+        return view('thread.create', compact('tags'));
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+
+public function store(Request $request)
 {
     $request->validate([
         'title' => 'required',
         'content' => 'required',
-        'tag' => 'required',
+        'tags' => 'required|string',
         'image' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048'
-    ], [
-        'title.required' => 'title harus diisi',
-        'content.required' => 'content harus diisi',
-        'tag.required' => 'tag harus diisi',
-        'image.image' => 'file yang diunggah harus berupa gambar',
-        'image.mimes' => 'format image harus sesuai (png, jpg, jpeg, svg)',
-        'image.max' => 'ukuran maksimal 2MB'
     ]);
+
     $filePath = null;
-
-
     if ($request->hasFile('image')) {
         $file = $request->file('image');
-        $fileName = 'image-' . rand(1,100) . '.' . $file->getClientOriginalExtension();
+        $fileName = 'image-' . rand(1, 100) . '.' . $file->getClientOriginalExtension();
         $filePath = $file->storeAs('image', $fileName, 'public');
     }
 
-    $createData = Thread::create([
+    // Buat thread baru
+    $thread = Thread::create([
         'title' => $request->title,
         'content' => $request->content,
         'image' => $filePath,
-        'tag' => $request->tag,
         'user_id' => Auth::id(),
         'status' => 'published'
     ]);
 
-    if ($createData) {
-        return redirect()->route('index')->with('success', 'Berhasil membuat thread');
-    } else {
-        return redirect()->back()->with('error', 'Thread gagal ditambah');
+    $tagNames = array_map('trim', explode(',', $request->tags));
+    $tagIds = [];
+    foreach ($tagNames as $tagName) {
+        if ($tagName === '') continue;
+        $tag = \App\Models\Tag::firstOrCreate(['name' => strtolower($tagName)]);
+        $tagIds[] = $tag->id;
     }
+    $thread->tags()->attach($tagIds);
+    return redirect()->route('index')->with('success', 'Thread berhasil dibuat!');
 }
 
+    public function filterByTag($tagName)
+{
+    // Ambil semua thread yang punya tag dengan nama sesuai $tagName
+    $threads = Thread::whereHas('tags', function ($q) use ($tagName) {
+        $q->where('name', $tagName);
+    })
+    ->with(['user', 'tags'])
+    ->withCount('comments')
+    ->latest()
+    ->get();
+
+    $popularTags = \App\Models\Tag::withCount('threads')
+        ->orderByDesc('threads_count')
+        ->take(10)
+        ->get();
+
+    return view('thread.index', [
+        'threads' => $threads,
+        'popularTags' => $popularTags,
+        'tagName' => $tagName
+    ]);
+}
 
 
     public function draftIndex(){
@@ -98,71 +110,101 @@ class ThreadController extends Controller
 
 
 
-    public function draftStore(Request $request)
-    {
-        $request->validate([
-            'title' => 'required',
-            'content' => 'required',
-            'tag' => 'required',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048'
-        ],[
-            'title.required' => 'title harus diisi',
-            'content.required' => 'content harus diisi',
-            'tag.required' => 'tag harus diisi',
-            'image.image' => 'file yang diunggah harus berupa gambar',
-            'image.mimes' => 'format image harus sesuai (png, jpg, jpeg, svg)',
-            'image.max' => 'ukuran maksimal 2MB'
-        ]);
-        $filePath = null;
-
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $fileName = 'image-' . rand(1,100) . '.' . $file->getClientOriginalExtension();
-            $filePath = $file->storeAs('image', $fileName, 'public');
-        }
-        
-        $createdata = Thread::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'image' => $filePath,
-            'tag' => $request->tag,
-            'user_id' => Auth::id(),
-            'status' => 'draft'
-        ]);
-
-
-
-        if($createdata){
-            return redirect()->route('account')->with('success' , 'berhasil tersimpan di draft');
-        }else{
-            return redirect()->back()->with('error' , 'gagal ditambah');
-        }
-    }
-
-    public function draftEdit($id){
-        $draft = Thread::find($id);
-        return view('draft.edit', compact('draft'));
-    }
-
-    public function draftUpdate(Request $request, $id)
+// Simpan draft
+public function draftStore(Request $request)
 {
     $request->validate([
-        'title' => 'required',
-        'content' => 'required',
-        'tag' => 'required'
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+        'tags' => 'nullable|string',
+        'image' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
     ]);
 
-    $draft = Thread::findOrFail($id);
+    $filePath = null;
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        $fileName = 'draft-' . rand(1, 9999) . '.' . $file->getClientOriginalExtension();
+        $filePath = $file->storeAs('drafts', $fileName, 'public');
+    }
 
-    $draft->update([
+    $draft = Thread::create([
         'title' => $request->title,
         'content' => $request->content,
-        'tag' => $request->tag,
-        'status' => 'draft'
+        'image' => $filePath,
+        'user_id' => Auth::id(),
+        'status' => 'draft',
     ]);
 
-    return redirect()->route('account.index')->with('success', 'Draft berhasil diperbarui');
+    if ($request->tags) {
+        $tagNames = array_map('trim', explode(',', $request->tags));
+        $tagIds = [];
+        foreach ($tagNames as $name) {
+            if ($name === '') continue;
+            $tag = \App\Models\Tag::firstOrCreate(['name' => strtolower($name)]);
+            $tagIds[] = $tag->id;
+        }
+        $draft->tags()->sync($tagIds);
+    }
+
+    return redirect()->route('account.index')->with('success', 'Draft berhasil dibuat!');
 }
+
+// Form edit draft
+public function draftEdit($id)
+{
+    $draft = Thread::where('id', $id)
+                    ->where('user_id', Auth::id())
+                    ->where('status', 'draft')
+                    ->firstOrFail();
+    $tags = \App\Models\Tag::all();
+
+    return view('draft.edit', compact('draft', 'tags'));
+}
+
+// Update draft
+public function draftUpdate(Request $request, $id)
+{
+    $draft = Thread::where('id', $id)
+                    ->where('user_id', Auth::id())
+                    ->where('status', 'draft')
+                    ->firstOrFail();
+
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+        'tags' => 'nullable|string',
+        'image' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
+    ]);
+
+    // Update gambar
+    if ($request->hasFile('image')) {
+        if ($draft->image) {
+            Storage::disk('public')->delete($draft->image);
+        }
+        $file = $request->file('image');
+        $fileName = 'draft-' . rand(1, 9999) . '.' . $file->getClientOriginalExtension();
+        $draft->image = $file->storeAs('drafts', $fileName, 'public');
+    }
+
+    $draft->title = $request->title;
+    $draft->content = $request->content;
+    $draft->save();
+
+    // Update tags
+    if ($request->tags) {
+        $tagNames = array_map('trim', explode(',', $request->tags));
+        $tagIds = [];
+        foreach ($tagNames as $name) {
+            if ($name === '') continue;
+            $tag = \App\Models\Tag::firstOrCreate(['name' => strtolower($name)]);
+            $tagIds[] = $tag->id;
+        }
+        $draft->tags()->sync($tagIds);
+    }
+
+    return redirect()->route('account.index')->with('success', 'Draft berhasil diperbarui!');
+}
+
 
     public function draftDestroy($id)
     {
@@ -176,6 +218,15 @@ class ThreadController extends Controller
         $draft->delete();
 
         return redirect()->route('account.index')->with('success', 'Draft berhasil dihapus');
+    }
+
+    public function draftPublish($id)
+    {
+        $draft = Thread::findOrFail($id);
+        $draft->status = 'published';
+        $draft->save();
+
+        return redirect()->route('account.index')->with('success', 'Draft berhasil dipublikasikan');
     }
 
     /**
@@ -210,7 +261,8 @@ class ThreadController extends Controller
      */
     public function destroy(Thread $thread)
     {
-        //
+        $thread->delete();
+        return redirect()->back()->with('success', 'Thread berhasil dihapus');
     }
 
     public function urThreadIndex()

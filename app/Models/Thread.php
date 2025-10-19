@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Thread extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['user_id','title', 'content', 'image' ,'tag','status'];
+    protected $fillable = ['user_id','title', 'content', 'image' , 'status'];
 
     public function user(){
         return $this->belongsTo(User::class);
@@ -18,8 +18,14 @@ class Thread extends Model
         return $this->hasMany(Comment::class);
     }
 
-    public function tags(){
-        return $this->belongsToMany(Tag::class, 'thread_tags');
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'thread_tags', 'thread_id', 'tag_id');
+    }
+
+    public function likes()
+    {
+        return $this->morphMany(Like::class, 'likeable');
     }
 
 }
