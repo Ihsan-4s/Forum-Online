@@ -17,6 +17,11 @@ Route::prefix('/threads')->name('threads.')->group(function(){
     Route::post('{thread}/comments', [CommentController::class, 'store'])->name('comments.store');
 });
 
+Route::middleware('IsAdmin')->prefix('/admin')->name('admin.')->group(function (){
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
+});
 
 Route::get('/tags/{tag}', [ThreadController::class, 'filterByTag'])->name('tags.show');
 
@@ -37,11 +42,6 @@ Route::prefix('/drafts')->name('drafts.')->group(function(){
 Route::prefix('/urThread')->name('urThreads.')->group(function(){
     route::get('/' , [ThreadController::class, 'urThreadIndex'])->name('index');
 });
-
-// Admin
-Route::get('/admin', function () {
-    return view('admin.dashboard');
-})->name('admin.dashboard');
 
 // account
 Route::prefix('/account')->name('account.')->group(function () {

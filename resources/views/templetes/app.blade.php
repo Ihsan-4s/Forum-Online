@@ -142,12 +142,6 @@
                         <i class="fa-solid fa-plus"></i><span>Create Thread</span>
                     </a>
                 </li>
-                <li>
-                    <a href="" class="nav-link {{ request()->routeIs('notification') ? 'active' : '' }}">
-                        <i class="fa-solid fa-bell"></i><span>Notifications</span>
-
-                    </a>
-                </li>
             </ul>
         </div>
 

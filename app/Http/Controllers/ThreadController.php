@@ -12,8 +12,15 @@ class ThreadController extends Controller
     public function index()
 {
     $threads = Thread::with(['user', 'tags'])
-        ->withCount('comments')
-        ->latest()
+    ->withCount(['comments', 'likes'])
+    ->orderByDesc('likes_count')
+    ->orderByDesc('created_at') // tiebreaker
+    ->get();
+
+
+    $topLikedThreads = Thread::withCount('likes')
+        ->orderByDesc('likes_count')
+        ->take(5)
         ->get();
 
     $popularTags = \App\Models\Tag::withCount('threads')
@@ -21,14 +28,15 @@ class ThreadController extends Controller
         ->take(10)
         ->get();
 
-        
-
     return view('thread.index', [
         'threads' => $threads,
         'popularTags' => $popularTags,
+        'topLikedThreads' => $topLikedThreads,
         'tagName' => null
     ]);
 }
+
+
 
 
     public function create()
