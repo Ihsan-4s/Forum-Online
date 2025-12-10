@@ -59,11 +59,11 @@ class UserController extends Controller
                 return redirect()->route('admin.getAllUsers')->with('success', 'Login Successful. Welcome Admin.');
                 }elseif(!Auth::user()->is_active){
                     Auth::logout();
-                    return redirect()->back()->with('error', 'Your account is deactivated. Please contact support.');
+                    return redirect()->back()->with('error', 'Your account is deactivated.');
                 }
                 return redirect()->route('index')->with('success', 'Login Successful.');
             }else{
-                return redirect()->back()->with('error', 'Login Failed. Please try again.');
+                return redirect()->back()->with('error', 'Login Failed.');
             }
     }
 
@@ -166,37 +166,49 @@ class UserController extends Controller
 
     public function active($id){
         $user = User::find($id);
-        $user->is_active = !$user->is_active;
+        $user->is_active = true;
         $user->save();
         return redirect()->route('admin.getAllUsers')->with('success', 'User status updated successfully.');
     }
 
     public function deactive($id){
         $user = User::find($id);
-        !$user->is_active= true;
+        $user->is_active= false;
         $user->save();
         return redirect()->route('admin.getAllUsers')->with('success', 'User status updated successfully.');
     }
 
     public function dataTable()
-    {
-        $users = User::where('role', 'user');
-        return DataTables::of($users)
-            ->addIndexColumn()
-            ->addColumn('action', function($user){
-                $btnNonActive = '<form action="'.route('admin.deactive', $user->id).'" method="POST" style="display:inline;">
-                                    '.csrf_field().'
-                                    <button type="submit" class="btn btn-sm btn-danger">Deactivate</button>
-                                </form>';
-                $btnActive = '<form action="'.route('admin.active', $user->id).'" method="POST" style="display:inline;">
-                                    '.csrf_field().'
-                                    <button type="submit" class="btn btn-sm btn-success">Activate</button>
-                                </form>';
-                return $user->is_active ? $btnNonActive : $btnActive;
-            })
-            ->rawColumns(['action'])
-            ->make(true);
-    }
+{
+    $users = User::where('role', 'user');
+
+    return DataTables::of($users)
+        ->addIndexColumn()
+        ->addColumn('action', function($user){
+            if ($user->is_active) {
+
+                return '
+                    <form action="'.route('admin.deactive', $user->id).'" method="POST" style="display:inline;">
+                        '.csrf_field().'
+                        '.method_field('PATCH').'
+                        <button type="submit" class="btn btn-sm btn-danger">Deactivate</button>
+                    </form>
+                ';
+            } else {
+                // Jika non-aktif → tampilkan tombol Activate
+                return '
+                    <form action="'.route('admin.active', $user->id).'" method="POST" style="display:inline;">
+                        '.csrf_field().'
+                        '.method_field('PATCH').'
+                        <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                    </form>
+                ';
+            }
+        })
+        ->rawColumns(['action'])
+        ->make(true);
+}
+
 
     public function userChart()
     {

@@ -17,7 +17,7 @@ class LikeController extends Controller
             'likeable_type' => 'required|string',
         ]);
 
-        $user = Auth::user(); // aman runtime
+        $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
@@ -37,9 +37,9 @@ class LikeController extends Controller
         $like = $item->likes()->where('user_id', $user->id)->first();
 
         if ($like) {
-            $like->delete(); // unlike
+            $like->delete();
         } else {
-            $item->likes()->create(['user_id' => $user->id]); // like
+            $item->likes()->create(['user_id' => $user->id]);
         }
 
         return back();

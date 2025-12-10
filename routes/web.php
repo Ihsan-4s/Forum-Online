@@ -59,10 +59,6 @@ Route::prefix('/drafts')->name('drafts.')->group(function(){
     route::put('publish/{id}', [ThreadController::class, 'draftPublish'])->name('publish');
 });
 
-// Route::prefix('/urThread')->name('urThreads.')->group(function(){
-//     route::get('/' , [ThreadController::class, 'urThreadIndex'])->name('index');
-// });
-
 // account
 Route::prefix('/account')->name('account.')->group(function () {
     route::get('/', [UserController::class, 'index'])->name('index');

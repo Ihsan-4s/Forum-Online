@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\ReportedExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Tag;
 
 class ThreadController extends Controller
 {
@@ -23,7 +26,7 @@ class ThreadController extends Controller
                 ->orderByDesc('created_at')
                 ->get();
 
-            $popularTags = \App\Models\Tag::withCount('threads')
+            $popularTags = Tag::withCount('threads')
                 ->orderByDesc('threads_count')
                 ->take(10)
                 ->get();
@@ -40,7 +43,7 @@ class ThreadController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $popularTags = \App\Models\Tag::withCount('threads')
+        $popularTags = Tag::withCount('threads')
             ->orderByDesc('threads_count')
             ->take(10)
             ->get();
@@ -66,7 +69,7 @@ class ThreadController extends Controller
 
     public function create()
     {
-        $tags = \App\Models\Tag::all();
+        $tags = Tag::all();
         return view('thread.create', compact('tags'));
 
     }
@@ -101,7 +104,7 @@ public function store(Request $request)
     $tagIds = [];
     foreach ($tagNames as $tagName) {
         if ($tagName === '') continue;
-        $tag = \App\Models\Tag::firstOrCreate(['name' => strtolower($tagName)]);
+        $tag = Tag::firstOrCreate(['name' => strtolower($tagName)]);
         $tagIds[] = $tag->id;
     }
     $thread->tags()->attach($tagIds);
@@ -110,7 +113,6 @@ public function store(Request $request)
 
     public function filterByTag($tagName)
 {
-    // Ambil semua thread yang punya tag dengan nama sesuai $tagName
     $threads = Thread::whereHas('tags', function ($q) use ($tagName) {
         $q->where('name', $tagName);
     })
@@ -119,7 +121,7 @@ public function store(Request $request)
     ->latest()
     ->get();
 
-    $popularTags = \App\Models\Tag::withCount('threads')
+    $popularTags = Tag::withCount('threads')
         ->orderByDesc('threads_count')
         ->take(10)
         ->get();
@@ -189,7 +191,7 @@ public function draftEdit($id)
                     ->where('user_id', Auth::id())
                     ->where('status', 'draft')
                     ->firstOrFail();
-    $tags = \App\Models\Tag::all();
+    $tags = Tag::all();
 
     return view('draft.edit', compact('draft', 'tags'));
 }
@@ -229,7 +231,7 @@ public function draftUpdate(Request $request, $id)
         $tagIds = [];
         foreach ($tagNames as $name) {
             if ($name === '') continue;
-            $tag = \App\Models\Tag::firstOrCreate(['name' => strtolower($name)]);
+            $tag = Tag::firstOrCreate(['name' => strtolower($name)]);
             $tagIds[] = $tag->id;
         }
         $draft->tags()->sync($tagIds);
@@ -322,7 +324,7 @@ public function draftUpdate(Request $request, $id)
     public function exportReportedThreads()
     {
         $fileName = 'reported_threads_' . date('Y_m_d_H_i_s') . '.xlsx';
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\ReportedExport, $fileName);
+        return Excel::download(new ReportedExport, $fileName);
 
     }
 
