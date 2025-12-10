@@ -78,6 +78,12 @@
     </style>
 
     <div class="container">
+        @if (Session::get('success'))
+            <div class="alert alert-success mb-4">{{ Session::get('success') }}</div>
+        @endif
+        @if (Session::get('error'))
+            <div class="alert alert-danger mb-4">{{ Session::get('error') }}</div>
+        @endif
         <div class="card create-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div>

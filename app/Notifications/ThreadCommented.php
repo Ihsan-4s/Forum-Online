@@ -21,7 +21,7 @@ class ThreadCommented extends Notification
         $this->thread = $thread;
     }
 
-    // channel notifikasi, misal database
+    
     public function via($notifiable)
     {
         return ['database'];

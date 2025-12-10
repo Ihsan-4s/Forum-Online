@@ -1,7 +1,17 @@
 @extends('templetes.app')
 @section('content')
     <div class="container my-5">
-        <h3 class="mb-3">Account Settings</h3>
+        @if (Session::get('success'))
+            <div class="alert alert-success mb-4">{{ Session::get('success') }}</div>
+        @endif
+        @if (Session::get('error'))
+            <div class="alert alert-danger mb-4">{{ Session::get('error') }}</div>
+        @endif
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="">Account Settings</h3>
+            <a class="btn btn-secondary btn-sm px-3 py-1" href="{{ route('logout') }}">Logout</a>
+        </div>
+
         <p>Manage your account settings and preferences.</p>
         <div class="card border-0 shadow mb-4">
             <div class="card-body mx-5">
@@ -37,7 +47,7 @@
                         <h4 class="mb-5">Personal Info</h4>
                         <div class="d-flex">
                             <div class="me-5">
-                                <p class="text-muted">Nama Lengap</p>
+                                <p class="text-muted">Nama Lengkap</p>
                                 <h5>{{ Auth::user()->name }}</h5>
                             </div>
                             <div>
@@ -49,6 +59,7 @@
                 </div>
                 <div>
                     <h4>Your Threads</h4>
+
                     <div>
                         <ul class="nav nav-tabs mb-4" id="threadsTab" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -111,7 +122,8 @@
                                                             {{ $thread->comments_count }} Pembahasan
                                                         </a>
                                                         <form action="{{ route('threads.destroy', $thread) }}"
-                                                            method="POST" class="d-inline">
+                                                            method="POST" class="d-inline"
+                                                            onsubmit="return confirm('Yakin hapus thread ini?')">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" class="btn btn-outline-danger btn-sm">

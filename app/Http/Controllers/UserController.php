@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Thread;
-
+use Dflydev\DotAccessData\Data;
+use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -54,7 +56,10 @@ class UserController extends Controller
         $data = $request->only('email', 'password');
         if(Auth::attempt($data)){
             if(Auth::user()->role == 'admin'){
-                return redirect()->route('admin.dashboard')->with('success', 'Login Successful. Welcome Admin.');
+                return redirect()->route('admin.getAllUsers')->with('success', 'Login Successful. Welcome Admin.');
+                }elseif(!Auth::user()->is_active){
+                    Auth::logout();
+                    return redirect()->back()->with('error', 'Your account is deactivated. Please contact support.');
                 }
                 return redirect()->route('index')->with('success', 'Login Successful.');
             }else{
@@ -69,6 +74,7 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
+
     public function index()
 {
     $userId = Auth::id();
@@ -85,9 +91,6 @@ class UserController extends Controller
 
     return view('account', compact('threads', 'drafts'));
 }
-
-
-
 
     /**
      * Show the form for creating a new resource.
@@ -152,5 +155,61 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    //admin
+    public function getAllUsers()
+    {
+        $users = User::where('role', 'user')->get();
+        return view('admin.dashboard', compact('users'));
+    }
+
+    public function active($id){
+        $user = User::find($id);
+        $user->is_active = !$user->is_active;
+        $user->save();
+        return redirect()->route('admin.getAllUsers')->with('success', 'User status updated successfully.');
+    }
+
+    public function deactive($id){
+        $user = User::find($id);
+        !$user->is_active= true;
+        $user->save();
+        return redirect()->route('admin.getAllUsers')->with('success', 'User status updated successfully.');
+    }
+
+    public function dataTable()
+    {
+        $users = User::where('role', 'user');
+        return DataTables::of($users)
+            ->addIndexColumn()
+            ->addColumn('action', function($user){
+                $btnNonActive = '<form action="'.route('admin.deactive', $user->id).'" method="POST" style="display:inline;">
+                                    '.csrf_field().'
+                                    <button type="submit" class="btn btn-sm btn-danger">Deactivate</button>
+                                </form>';
+                $btnActive = '<form action="'.route('admin.active', $user->id).'" method="POST" style="display:inline;">
+                                    '.csrf_field().'
+                                    <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                                </form>';
+                return $user->is_active ? $btnNonActive : $btnActive;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    public function userChart()
+    {
+        $month = now()->format('m');
+        $users = User::where('role', 'user')->whereMonth('created_at', $month)->get()->groupBy(fn($user) => $user->created_at->format('Y-m-d'))->toArray();
+        $labels = array_keys($users);
+        $data = [];
+        foreach($users as $userGroup){
+            array_push($data, count($userGroup));
+        }
+        return response()->json([
+            'labels' => $labels,
+            'data' => $data
+        ]);
     }
 }

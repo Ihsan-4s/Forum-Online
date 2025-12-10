@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('likes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->morphs('likeable');
-            $table->timestamps();
-            $table->unique(['user_id', 'likeable_id', 'likeable_type']);
+        Schema::table('users', function (Blueprint $table) {
+            $table->boolean('is_active')->default(true);
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('likes');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('is_active');
+        });
     }
 };

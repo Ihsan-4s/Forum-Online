@@ -48,6 +48,16 @@
 </head>
 
 <body style="background-image: url('{{ asset('images/bg.png') }}') ; background-size: cover; background-repeat: no-repeat; height: 100vh;">
+    @if (Session('success'))
+        <div class="alert alert-success ">
+            {{Session::get('success')}}
+        </div>
+    @endif
+    @if (Session('error'))
+        <div class="alert alert-danger ">
+            {{Session::get('error')}}
+        </div>
+    @endif
     <div class="auth-box text-center">
         <ul class="nav nav-pills nav-justified mb-4">
             <li class="nav-item ">
@@ -65,17 +75,7 @@
                     <h4 class="mb-3">Log in to Your Account</h4>
                     <input type="email" name="email" class="form-control mb-3" placeholder="Email">
                     <input type="password" name="password" class="form-control mb-3" placeholder="Password">
-                    <div class="d-flex justify-content-between mb-3">
-                        <div><input type="checkbox"> Remember me</div>
-                        <a href="#">Forgot password?</a>
-                    </div>
-                    <button class="btn btn-primary w-100 mb-3">LOG IN</button>
-                    <p class="text-muted">Or log in using</p>
-                    <div class="social-buttons d-flex justify-content-center gap-3">
-                        <button><i class="fab fa-google"></i></button>
-                        <button><i class="fab fa-facebook-f"></i></button>
-                        <button><i class="fab fa-twitter"></i></button>
-                    </div>
+                    <button class="btn btn-primary w-100 mb-3" type="submit">LOG IN</button>
                 </form>
             </div>
 
@@ -91,17 +91,8 @@
                     </div>
                     <input type="email" name="email" class="form-control mb-3" placeholder="Email">
                     <input type="password" name="password" class="form-control mb-3" placeholder="Password">
-                    <div class="form-check mb-3 text-start">
-                        <input type="checkbox" class="form-check-input" id="terms">
-                        <label for="terms" class="form-check-label">I agree to the Terms & Conditions</label>
-                    </div>
                     <button class="btn btn-primary w-100 mb-3">SIGN UP</button>
-                    <p class="text-muted">Or sign up using</p>
-                    <div class="social-buttons d-flex justify-content-center gap-3">
-                        <button><i class="fab fa-google"></i></button>
-                        <button><i class="fab fa-facebook-f"></i></button>
-                        <button><i class="fab fa-twitter"></i></button>
-                    </div>
+
                 </form>
             </div>
         </div>

@@ -8,6 +8,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
     <style>
         body {
@@ -114,13 +115,9 @@
 </head>
 
 <body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-light bg-white border-bottom d-lg-none px-3">
-        <button class="mobile-toggle" id="mobileToggle">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <span class="fw-bold text-primary">PointSale</span>
-    </nav>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column justify-content-between p-3" id="sidebar">
@@ -131,17 +128,58 @@
             </div>
 
             <ul class="nav nav-pills flex-column mb-auto">
-                <li class="nav-item">
-                    <a href="{{ route('index') }}" class="nav-link {{ request()->routeIs('index') ? 'active' : '' }}">
-                        <i class="fa-solid fa-house"></i><span>Home</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('threads.create') }}"
-                        class="nav-link {{ request()->routeIs('threads.create') ? 'active' : '' }}">
-                        <i class="fa-solid fa-plus"></i><span>Create Thread</span>
-                    </a>
-                </li>
+                @if (Auth::check() && Auth::user()->role == 'admin')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.getAllUsers') }}" class="nav-link ">
+                            <span>User</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.threads.index') }}" class="nav-link">
+                            <span>Threads</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.comments.index') }}" class="nav-link">
+                            <span>Comments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('logout') }}" class="nav-link ">
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                @else
+                    <li class="nav-item">
+                        <a href="{{ route('index') }}"
+                            class="nav-link {{ request()->routeIs('index') ? 'active' : '' }}">
+                            <i class="fa-solid fa-house"></i><span>Threads</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('threads.explore') }}"
+                            class="nav-link {{ request()->routeIs('threads.explore') ? 'active' : '' }}">
+                            <i class="fa-brands fa-searchengin"></i><span>Explore</span>
+                        </a>
+                    </li>
+                    <li>
+                        @auth
+                            <a href="{{ route('threads.create') }}"
+                                class="nav-link {{ request()->routeIs('threads.create') ? 'active' : '' }}">
+                                <i class="fa-solid fa-plus"></i><span>Create Thread</span>
+                            </a>
+                        @endauth
+                    </li>
+                    <li>
+                        @auth
+                            <a href="{{ route('threads.trash') }}"
+                                class="nav-link {{ request()->routeIs('threads.trash') ? 'active' : '' }}">
+                                <i class="fa-solid fa-trash"></i><span>Trash Bin</span>
+                            </a>
+                        @endauth
+                    </li>
+                @endif
+
             </ul>
         </div>
 
@@ -152,8 +190,12 @@
             @if (Auth::check() && Auth::user()->profile_picture)
                 <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" class="rounded-circle mb-3"
                     width="80" height="80" style="object-fit: cover">
+            @elseif (Auth::check() && Auth::user()->role == 'admin')
+                <img src="https://ui-avatars.com/api/?name=Admin" class="rounded-circle mb-3" width="80"
+                    height="80" style="object-fit: cover">
             @else
-                <img src="https://ui-avatars.com/api/?name=Guest" class="rounded-circle mb-3" width="80">
+                <img src="https://ui-avatars.com/api/?name=Guest" class="rounded-circle mb-3" width="80"
+                    height="80" style="object-fit: cover">
             @endif
             <div>
                 <strong>{{ Auth::user()->name ?? 'Guest' }}</strong><br>
@@ -166,24 +208,9 @@
     <div class="main-content" id="mainContent">
         @yield('content')
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const sidebar = document.getElementById('sidebar');
-        const mobileToggle = document.getElementById('mobileToggle');
-
-        // Mobile sidebar toggle
-        mobileToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('show');
-        });
-
-        // Tutup sidebar kalau klik di luar (khusus HP)
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth < 992 && !sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
-                sidebar.classList.remove('show');
-            }
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @stack('script')
 </body>
 
 </html>

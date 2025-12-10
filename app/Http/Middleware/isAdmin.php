@@ -17,4 +17,3 @@ class IsAdmin
         return redirect()->route('index');
     }
 }
-

@@ -10,7 +10,7 @@ class Comment extends Model
 
     use hasFactory;
 
-    protected $fillable = ['thread_id', 'user_id', 'content'];
+    protected $fillable = ['thread_id', 'user_id', 'content', 'is_reported', 'report_reason'];
 
     public function thread(){
         return $this->belongsTo(Thread::class);

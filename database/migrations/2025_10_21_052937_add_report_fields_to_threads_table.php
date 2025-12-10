@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('likes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->morphs('likeable');
-            $table->timestamps();
-            $table->unique(['user_id', 'likeable_id', 'likeable_type']);
+        Schema::table('threads', function (Blueprint $table) {
+            $table->boolean('is_reported')->default(false);
+            $table->text('report_reason')->nullable();
         });
     }
 
@@ -25,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('likes');
+        Schema::table('threads', function (Blueprint $table) {
+            $table->dropColumn(['is_reported', 'report_reason']);
+        });
     }
 };

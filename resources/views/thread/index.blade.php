@@ -8,13 +8,11 @@
         @if (Session::get('error'))
             <div class="alert alert-danger mb-4">{{ Session::get('error') }}</div>
         @endif
-
         <div class="row">
             <div class="col-lg-8 mb-4">
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body d-flex align-items-center gap-4">
                         @auth
-                            {{-- Profile Picture --}}
                             <div class="position-relative">
                                 @if (Auth::user()->profile_picture)
                                     <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="profile"
@@ -24,7 +22,6 @@
                                         class="rounded-circle border" width="120" height="120" style="object-fit: cover">
                                 @endif
                             </div>
-                            {{-- User Info --}}
                             <div>
                                 <h5 class="fw-bold mb-1">{{ Auth::user()->name }}</h5>
                                 <p class="text-muted small mb-1">{{ '@' . Str::slug(Auth::user()->name, '_') }}</p>
@@ -35,30 +32,6 @@
                         @endauth
                     </div>
                 </div>
-
-                {{-- Filter by Tag --}}
-                <div class="mb-4 p-3 bg-white rounded shadow-sm border-0">
-                    <h6 class="fw-bold mb-3">
-                        @if ($tagName)
-                            Showing posts tagged: <span class="text-primary">#{{ $tagName }}</span>
-                            <a href="{{ route('index') }}" class="btn btn-link btn-sm text-decoration-none">← Clear
-                                Filter</a>
-                        @else
-                            Popular Tags
-                        @endif
-                    </h6>
-
-                    <div>
-                        @foreach ($popularTags as $popularTag)
-                            <a href="{{ route('tags.show', $popularTag->name) }}"
-                                class="badge bg-light text-dark border text-decoration-none me-1 mb-1">
-                                #{{ $popularTag->name }} <small
-                                    class="text-muted">({{ $popularTag->threads_count }})</small>
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-
                 <hr>
 
                 {{-- Threads List --}}
@@ -81,7 +54,6 @@
                                         <h6 class="fw-semibold mb-0">{{ $thread->user->name }}</h6>
                                         <small class="text-muted">{{ $thread->created_at->diffForHumans() }}</small>
                                     </div>
-
                                 </div>
 
                                 <div class="mt-2">
@@ -93,9 +65,7 @@
                                     <p class="text-muted mb-2" style="font-size: 0.95rem;">
                                         {{ Str::limit(strip_tags($thread->content), 80, '...') }}
                                     </p>
-
                                 </div>
-
 
                                 <div>
                                     @foreach ($thread->tags as $tag)
@@ -105,8 +75,10 @@
                                         </a>
                                     @endforeach
                                 </div>
-                                <div class="d-flex float-end">
-                                    <form action="{{ route('like.toggle') }}" method="POST" class="d-inline mx-3">
+
+                                <div class="d-flex float-end align-items-center">
+                                    {{-- Tombol Like --}}
+                                    <form action="{{ route('like.toggle') }}" method="POST" class="d-inline mx-2">
                                         @csrf
                                         <input type="hidden" name="likeable_id" value="{{ $thread->id }}">
                                         <input type="hidden" name="likeable_type" value="thread">
@@ -115,15 +87,49 @@
                                         </button>
                                     </form>
 
+                                    {{-- Tombol Komentar --}}
                                     <a href="{{ route('threads.show', $thread) }}"
-                                        class="btn btn-outline-secondary btn-sm float-end">
-                                        {{ $thread->comments_count }} Komentar
+                                        class="btn btn-outline-secondary btn-sm mx-2">
+                                        💬 {{ $thread->comments_count }} Komentar
                                     </a>
+                                    @if (auth()->check() && auth()->id() !== $thread->user_id)
+                                        <button class="btn btn-sm btn-outline-danger mx-2" data-bs-toggle="modal"
+                                            data-bs-target="#reportModal{{ $thread->id }}">
+                                            🚩 Laporkan
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    {{-- Modal Laporkan --}}
+                    <div class="modal fade" id="reportModal{{ $thread->id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form action="{{ route('threads.report', $thread) }}" method="POST" class="modal-content">
+                                @csrf
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Laporkan Thread</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-2"><strong>{{ $thread->title }}</strong></p>
+                                    <div class="mb-3">
+                                        <label for="reason{{ $thread->id }}" class="form-label">Alasan</label>
+                                        <textarea name="reason" id="reason{{ $thread->id }}" class="form-control" rows="3"
+                                            placeholder="Tulis alasan laporan (mis. spam, ujaran kebencian)" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-danger">Kirim Laporan</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 @endforeach
+
             </div>
 
             {{-- Sidebar --}}
@@ -132,28 +138,29 @@
                     <div class="card-body text-center">
                         @auth
                             @if (Auth::user()->profile_picture)
-                                <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" class="rounded-circle mb-3"
-                                    width="80" height="80" style="object-fit: cover">
+                                <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}"
+                                    class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover">
                             @else
                                 <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}"
                                     class="rounded-circle mb-3" width="80">
                             @endif
                             <h6 class="fw-bold mb-0">{{ Auth::user()->name }}</h6>
                             <p class="text-muted small">{{ '@' . Str::slug(Auth::user()->name, '_') }}</p>
-                            <a href="#" class="btn btn-primary btn-sm w-100 rounded-pill mb-2">My Profile</a>
+                            <a href="{{ route('account.index') }}" class="btn btn-primary btn-sm w-100 rounded-pill mb-2">My Profile</a>
                             <a class="btn btn-secondary btn-sm w-100 rounded-pill" href="{{ route('logout') }}">Logout</a>
                         @else
                             <img src="https://ui-avatars.com/api/?name=Guest" class="rounded-circle mb-3" width="80">
                             <h6 class="fw-bold mb-0">Guest User</h6>
                             <p class="text-muted small">@anonymous</p>
-                            <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm w-100 rounded-pill">Login</a>
+                            <a href="{{ route('login') }}"
+                                class="btn btn-outline-primary btn-sm w-100 rounded-pill">Login</a>
                         @endauth
                     </div>
 
                 </div>
 
                 {{-- Notifications --}}
-                <div class="card shadow-sm border-0 mb-4">
+                {{-- <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body">
                         <h6 class="fw-bold mb-3">Notifikasi</h6>
                         @auth
@@ -193,16 +200,27 @@
                             <p class="text-muted small mb-0">Login untuk melihat notifikasi</p>
                         @endauth
                     </div>
-                </div>
+                </div> --}}
 
-                {{-- <div class="card shadow-sm border-0">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3">Your Shortcuts</h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2"><i class="bi bi-palette me-2 text-primary"></i>Art & Drawing</li>
-                            <li class="mb-2"><i class="bi bi-behance me-2 text-primary"></i>Behance Creative</li>
-                            <li><i class="bi bi-controller me-2 text-primary"></i>Game Community</li>
-                        </ul>
+                {{-- <div class="mb-4 p-3 bg-white rounded shadow-sm border-0">
+                    <h6 class="fw-bold mb-3">
+                        @if ($tagName)
+                            Showing posts tagged: <span class="text-primary">#{{ $tagName }}</span>
+                            <a href="{{ route('index') }}" class="btn btn-link btn-sm text-decoration-none">← Clear
+                                Filter</a>
+                        @else
+                            Popular Tags
+                        @endif
+                    </h6>
+
+                    <div>
+                        @foreach ($popularTags as $popularTag)
+                            <a href="{{ route('tags.show', $popularTag->name) }}"
+                                class="badge bg-light text-dark border text-decoration-none me-1 mb-1">
+                                #{{ $popularTag->name }} <small
+                                    class="text-muted">({{ $popularTag->threads_count }})</small>
+                            </a>
+                        @endforeach
                     </div>
                 </div> --}}
             </div>
