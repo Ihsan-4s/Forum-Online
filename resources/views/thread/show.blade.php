@@ -7,7 +7,8 @@
         @if (Session::get('error'))
             <div class="alert alert-danger mb-4">{{ Session::get('error') }}</div>
         @endif
-        <a href="{{ url()->previous() }}" class="btn btn-primary mb-3">< Back</a>
+        <a href="{{ url()->previous() }}" class="btn btn-primary mb-3">
+            < Back</a>
                 @auth
                     <a href="{{ route('threads.exportPDF', $thread->id) }}" class="btn btn-primary mb-3">
                         Export PDF
@@ -53,12 +54,22 @@
                                     <p class="text-muted mb-0 mt-1">{{ $comment->content }}</p>
                                     <div class="d-flex align-items-center gap-3 text-muted small">
                                         <div class="ms-auto d-flex align-items-center gap-2">
-                                            <form action="{{ route('like.toggle') }}" method="POST" class="d-inline">
+                                            <form action="{{ route('like.toggle') }}" method="POST" class="d-inline mx-2">
                                                 @csrf
                                                 <input type="hidden" name="likeable_id" value="{{ $comment->id }}">
                                                 <input type="hidden" name="likeable_type" value="comment">
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                                    👍 Like ({{ $comment->likes()->count() }})
+                                                @php
+                                                    $isLiked =
+                                                        auth()->check() &&
+                                                        $comment
+                                                            ->likes()
+                                                            ->where('user_id', auth()->id())
+                                                            ->exists();
+                                                @endphp
+                                                <button type="submit"
+                                                    class="btn btn-sm {{ $isLiked ? 'btn-primary' : 'btn-outline-primary' }}">
+                                                    {{ $isLiked ? '👍 Liked' : '👍 Like' }}
+                                                    ({{ $comment->likes()->count() }})
                                                 </button>
                                             </form>
                                             @if (auth()->check() && (auth()->user()->id === $comment->user_id || auth()->user()->is_admin))
@@ -74,12 +85,26 @@
                                                 </form>
                                             @endif
                                             @if (auth()->check() && auth()->id() !== $comment->user_id)
-                                                <button class="btn btn-sm btn-outline-danger mx-2" data-bs-toggle="modal"
-                                                    data-bs-target="#reportModal{{ $comment->id }}">
-                                                    🚩 Laporkan
-                                                </button>
+                                                @php
+                                                    $hasReported = $comment
+                                                        ->reports()
+                                                        ->where('user_id', auth()->id())
+                                                        ->exists();
+                                                @endphp
+                                                <form
+                                                    action="{{ route('threads.comments.report', [$thread->id, $comment->id]) }}"
+                                                    method="POST" class="d-inline mx-2">
+                                                    @csrf
+                                                    <input type="hidden" name="reportable_id" value="{{ $comment->id }}">
+                                                    <input type="hidden" name="reportable_type" value="comment">
+                                                    <button type="submit"
+                                                        class="btn btn-sm {{ $hasReported ? 'btn-secondary' : 'btn-danger' }}"
+                                                        {{ $hasReported ? 'disabled' : '' }}>
+                                                        {{ $hasReported ? 'Reported' : 'Report' }}
+                                                    </button>
+                                                </form>
                                             @endif
-                                            <div class="modal fade" id="reportModal{{ $comment->id }}" tabindex="-1"
+                                            {{-- <div class="modal fade" id="reportModal{{ $comment->id }}" tabindex="-1"
                                                 aria-hidden="true">
                                                 <div class="modal-dialog">
                                                     <form
@@ -108,7 +133,7 @@
                                                         </div>
                                                     </form>
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     </div>
                                 </div>

@@ -10,7 +10,6 @@
             <tr>
 
                 <th>Comments</th>
-                <th>Reason</th>
                 <th>Actions</th>
             </tr>
             </thead>
@@ -40,7 +39,6 @@
                 ajax:'{{ route('admin.comments.data') }}',
                 columns:[
                     {data:'content', name:'content', orderable:true, searchable:true},
-                    {data:'report_reason', name:'report_reason' , orderable:true, searchable:true},
                     {data:'actions', name:'actions', orderable:false, searchable:false},
                 ]
             })

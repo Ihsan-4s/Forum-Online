@@ -82,29 +82,52 @@
                                         @csrf
                                         <input type="hidden" name="likeable_id" value="{{ $thread->id }}">
                                         <input type="hidden" name="likeable_type" value="thread">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">
-                                            👍 Like ({{ $thread->likes()->count() }})
+                                        @php
+                                            $isLiked =
+                                                auth()->check() &&
+                                                $thread
+                                                    ->likes()
+                                                    ->where('user_id', auth()->id())
+                                                    ->exists();
+                                        @endphp
+                                        <button type="submit"
+                                            class="btn btn-sm {{ $isLiked ? 'btn-primary' : 'btn-outline-primary' }}">
+                                            {{ $isLiked ? '👍 Liked' : '👍 Like' }} ({{ $thread->likes()->count() }})
                                         </button>
                                     </form>
 
-                                    {{-- Tombol Komentar --}}
                                     <a href="{{ route('threads.show', $thread) }}"
                                         class="btn btn-outline-secondary btn-sm mx-2">
                                         💬 {{ $thread->comments_count }} Komentar
                                     </a>
+
                                     @if (auth()->check() && auth()->id() !== $thread->user_id)
-                                        <button class="btn btn-sm btn-outline-danger mx-2" data-bs-toggle="modal"
-                                            data-bs-target="#reportModal{{ $thread->id }}">
-                                            🚩 Laporkan
-                                        </button>
+                                        @php
+                                            $hasReported = $thread
+                                                ->reports()
+                                                ->where('user_id', auth()->id())
+                                                ->exists();
+                                        @endphp
+                                        <form action="{{ route('threads.report', $thread->id) }}" method="POST" class="d-inline mx-2">
+                                            @csrf
+                                            <input type="hidden" name="reportable_id" value="{{ $thread->id }}">
+                                            <input type="hidden" name="reportable_type" value="thread">
+                                            <input type="hidden" name="reason" value="default reason">
+                                            <button type="submit"
+                                                class="btn btn-sm {{ $hasReported ? 'btn-secondary' : 'btn-danger' }}"
+                                                {{ $hasReported ? 'disabled' : '' }}>
+                                                {{ $hasReported ? 'Reported' : 'Report' }}
+                                            </button>
+                                        </form>
                                     @endif
+
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- Modal Laporkan --}}
-                    <div class="modal fade" id="reportModal{{ $thread->id }}" tabindex="-1" aria-hidden="true">
+                    {{-- <div class="modal fade" id="reportModal{{ $thread->id }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">
                             <form action="{{ route('threads.report', $thread) }}" method="POST" class="modal-content">
                                 @csrf
@@ -122,12 +145,13 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
                                     <button type="submit" class="btn btn-danger">Kirim Laporan</button>
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </div> --}}
                 @endforeach
 
             </div>
@@ -146,7 +170,8 @@
                             @endif
                             <h6 class="fw-bold mb-0">{{ Auth::user()->name }}</h6>
                             <p class="text-muted small">{{ '@' . Str::slug(Auth::user()->name, '_') }}</p>
-                            <a href="{{ route('account.index') }}" class="btn btn-primary btn-sm w-100 rounded-pill mb-2">My Profile</a>
+                            <a href="{{ route('account.index') }}" class="btn btn-primary btn-sm w-100 rounded-pill mb-2">My
+                                Profile</a>
                             <a class="btn btn-secondary btn-sm w-100 rounded-pill" href="{{ route('logout') }}">Logout</a>
                         @else
                             <img src="https://ui-avatars.com/api/?name=Guest" class="rounded-circle mb-3" width="80">

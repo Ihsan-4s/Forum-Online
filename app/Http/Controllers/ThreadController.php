@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\ReportedExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Tag;
+use App\Models\Comment;
 
 class ThreadController extends Controller
 {
@@ -57,7 +58,7 @@ class ThreadController extends Controller
 
     public function index()
 {
-    $threads = Thread::with(['user', 'tags'])
+    $threads = Thread::with(['user', 'tags'])->where('status', 'published')
     ->orderByDesc('created_at')
     ->get();
 
@@ -126,13 +127,12 @@ public function store(Request $request)
         ->take(10)
         ->get();
 
-    return view('thread.index', [
+    return view('thread.explore', [
         'threads' => $threads,
         'popularTags' => $popularTags,
         'tagName' => $tagName
     ]);
 }
-
 
     public function draftIndex(){
         $drafts = Thread::where('user_id', Auth::id())
@@ -171,11 +171,12 @@ public function draftStore(Request $request)
     ]);
 
     if ($request->tags) {
+        //laravel, error -> ['laravel', 'error']
         $tagNames = array_map('trim', explode(',', $request->tags));
         $tagIds = [];
         foreach ($tagNames as $name) {
             if ($name === '') continue;
-            $tag = \App\Models\Tag::firstOrCreate(['name' => strtolower($name)]);
+            $tag = Tag::firstOrCreate(['name' => strtolower($name)]);
             $tagIds[] = $tag->id;
         }
         $draft->tags()->sync($tagIds);
@@ -276,16 +277,42 @@ public function draftUpdate(Request $request, $id)
     public function report(Request $request, Thread $thread)
 {
     $request->validate([
-        'reason' => 'required|string|max:255',
+        'reportable_id' => 'required|integer',
+        'reportable_type' => 'required|string',
     ]);
 
-    $thread->update([
-        'is_reported' => true,
-        'report_reason' => $request->reason,
-    ]);
+    $user = Auth::user();
 
-    return back()->with('success', 'Thread berhasil dilaporkan.');
+    $modelClass = match ($request->reportable_type) {
+        'thread' => Thread::class,
+        'comment' => Comment::class,
+        default => null,
+    };
+
+    if (!$modelClass) {
+        return back()->withErrors(['Invalid type']);
+    }
+
+    $item = $modelClass::findOrFail($request->reportable_id);
+
+    $report = $item->reports()->where('user_id', $user->id)->first();
+
+    if ($report) {
+        $report->delete();
+    } else {
+        $item->reports()->create([
+            'user_id' => $user->id,
+        ]);
+    }
+
+    // update is_reported untuk thread saja
+    if ($item instanceof Thread) {
+        $item->update(['is_reported' => $item->reports()->exists()]);
+    }
+
+    return back()->with('success', 'Laporan berhasil diupdate.');
 }
+
 
 
 
@@ -317,7 +344,7 @@ public function draftUpdate(Request $request, $id)
 
     public function adminThreads()
     {
-        $threads = Thread::where('is_reported', true)->get();
+        $threads = Thread::whereHas('reports')->with(['user', 'reports'])->get();
         return view('admin.threads', compact('threads'));
     }
 
@@ -339,7 +366,10 @@ public function draftUpdate(Request $request, $id)
     public function restore($id)
     {
         $thread = Thread::withTrashed()->find($id);
+        $statusBeforeDelete = $thread->getOriginal('status');
         $thread->restore();
+        $thread->update(['status' => $statusBeforeDelete]);
+
         return redirect()->route('index')->with('success', 'Data Berhasil Direstore');
     }
 
@@ -351,54 +381,63 @@ public function draftUpdate(Request $request, $id)
     }
 
     public function threadsData()
-    {
-        $threads = Thread::with('user')->where('is_reported', true)->get();
-        return Datatables::of($threads)
-            ->addIndexColumn()
-            ->addColumn('title', function ($thread) {
+{
+    $threads = Thread::with('user')->where('is_reported', true);
 
-        $image = $thread->image
-            ? '<img src="'.asset("storage/".$thread->image).'" width="300" class="rounded mb-2 d-block">'
-            : '';
+    return Datatables::of($threads)
+        ->addIndexColumn()
 
-        $profile = $thread->user->profile_picture
-            ? asset("storage/".$thread->user->profile_picture)
-            : "https://ui-avatars.com/api/?name=" . $thread->user->name;
+        ->addColumn('title', function ($thread) {
 
-        return '
-        <div class="border rounded-3 bg-light-subtle p-3 shadow-sm">
-            <div class="d-flex align-items-center mb-2">
-                <img src="'.$profile.'" class="rounded-circle border me-2" width="45" height="45" style="object-fit: cover;">
-                <div>
-                    <h6 class="fw-semibold mb-0">'.$thread->user->name.'</h6>
-                    <small class="text-muted">'.$thread->created_at->diffForHumans().'</small>
+            $image = $thread->image
+                ? '<img src="'.asset("storage/".$thread->image).'" width="300" class="rounded mb-2 d-block">'
+                : '';
+
+            $profile = $thread->user->profile_picture
+                ? asset("storage/".$thread->user->profile_picture)
+                : "https://ui-avatars.com/api/?name=" . $thread->user->name;
+
+            return '
+                <div class="border rounded-3 bg-light-subtle p-3 shadow-sm">
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="'.$profile.'" class="rounded-circle border me-2" width="45" height="45">
+                        <div>
+                            <h6 class="fw-semibold mb-0">'.$thread->user->name.'</h6>
+                            <small class="text-muted">'.$thread->created_at->diffForHumans().'</small>
+                        </div>
+                        <span class="badge bg-secondary ms-auto">'.ucfirst($thread->user->role ?? "user").'</span>
+                    </div>
+
+                    <div class="mt-2">
+                        <h5 class="fw-bold mb-2">'.$thread->title.'</h5>
+                        '.$image.'
+                        <p class="text-muted">'.Str::limit(strip_tags($thread->content), 150, "...").'</p>
+                    </div>
                 </div>
-                <span class="badge bg-secondary ms-auto">'.ucfirst($thread->user->role ?? "user").'</span>
-            </div>
+            ';
+        })
 
-            <div class="mt-2">
-                <h5 class="fw-bold mb-2">'.$thread->title.'</h5>
-                '.$image.'
-                <p class="text-muted" style="font-size: 0.95rem;">'.Str::limit(strip_tags($thread->content), 150, "...").'</p>
-            </div>
-        </div>
-        ';
-    })
-            ->addColumn('user', function($thread){
-                return $thread->user->name;
-            })
-            ->addColumn('actions', function($thread){
-                $btnDestroy = '<form action="'.route('threads.destroy', $thread->id).'" method="POST">
-                            '.csrf_field().'
-                            '.method_field("DELETE").'
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Are you sure?\')">Delete</button>
-                        </form>';
-                $btnView = '<a href="'.route('threads.show', $thread->id).'" class="btn btn-primary btn-sm">View</a> ';
-                return '<div class="d-flex gap-2 justify-content-center">' . $btnDestroy . $btnView . '</div>';
-            })
-            ->rawColumns(['actions', 'user', 'title'])
-            ->make(true);
-    }
+        ->filterColumn('title', function($query, $keyword) {
+            $query->where('title', 'like', "%{$keyword}%")
+                    ->orWhere('content', 'like', "%{$keyword}%");
+        })
+
+        ->addColumn('actions', function($thread){
+            $btnDestroy = '<form action="'.route('threads.destroy', $thread->id).'" method="POST">
+                '.csrf_field().'
+                '.method_field("DELETE").'
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Are you sure?\')">Delete</button>
+            </form>';
+
+            $btnView = '<a href="'.route('threads.show', $thread->id).'" class="btn btn-primary btn-sm">View</a>';
+
+            return '<div class="d-flex gap-2 justify-content-center">'.$btnDestroy.$btnView.'</div>';
+        })
+
+        ->rawColumns(['title', 'actions'])
+        ->make(true);
+}
+
 
     public function exportPDF($thread)
     {
@@ -412,18 +451,21 @@ public function draftUpdate(Request $request, $id)
         return $pdf->download($fileName);
     }
 
-    public function reportedChart()
-    {
-        $month = now()->format('m');
-        $reportedThreads = Thread::where('is_reported', true)->whereMonth('created_at', $month)->get()->groupBy(fn($thread) => $thread->created_at->format('Y-m-d'))->toArray();
-        $labels = array_keys($reportedThreads);
-        $data = [];
-        foreach($reportedThreads as $threadGroup){
-            array_push($data, count($threadGroup));
-        }
-        return response()->json([
-            'labels' => $labels,
-            'data' => $data,
-        ]);
-    }
+    public function reportedChart() {
+    $month = now()->format('m');
+
+    $reportedThreads = Thread::whereHas('reports', function($q) use ($month) {
+        $q->whereMonth('created_at', $month);
+    })->get()->groupBy(fn($t) => $t->created_at->format('Y-m-d'));
+
+    $labels = $reportedThreads->keys();
+    $data = $reportedThreads->map(fn($group) => count($group))->values()->all();
+
+    return response()->json([
+        'labels' => $labels,
+        'data' => $data,
+    ]);
+}
+
+
 }

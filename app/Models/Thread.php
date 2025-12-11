@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Thread extends Model
 {
     use SoftDeletes;
-    
+
     protected $fillable = ['user_id','title', 'content', 'image' , 'status', 'is_reported', 'report_reason'];
 
     public function user(){
@@ -29,5 +29,9 @@ class Thread extends Model
         return $this->morphMany(Like::class, 'likeable');
     }
 
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
 }
 

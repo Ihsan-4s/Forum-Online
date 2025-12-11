@@ -72,13 +72,22 @@
                         <div class="d-flex float-end align-items-center">
                             {{-- Tombol Like --}}
                             <form action="{{ route('like.toggle') }}" method="POST" class="d-inline mx-2">
-                                @csrf
-                                <input type="hidden" name="likeable_id" value="{{ $thread->id }}">
-                                <input type="hidden" name="likeable_type" value="thread">
-                                <button type="submit" class="btn btn-sm btn-outline-primary">
-                                    👍 Like ({{ $thread->likes()->count() }})
-                                </button>
-                            </form>
+                                        @csrf
+                                        <input type="hidden" name="likeable_id" value="{{ $thread->id }}">
+                                        <input type="hidden" name="likeable_type" value="thread">
+                                        @php
+                                            $isLiked =
+                                                auth()->check() &&
+                                                $thread
+                                                    ->likes()
+                                                    ->where('user_id', auth()->id())
+                                                    ->exists();
+                                        @endphp
+                                        <button type="submit"
+                                            class="btn btn-sm {{ $isLiked ? 'btn-primary' : 'btn-outline-primary' }}">
+                                            {{ $isLiked ? '👍 Liked' : '👍 Like' }} ({{ $thread->likes()->count() }})
+                                        </button>
+                                    </form>
 
                             {{-- Tombol Komentar --}}
                             <a href="{{ route('threads.show', $thread) }}" class="btn btn-outline-secondary btn-sm mx-2">

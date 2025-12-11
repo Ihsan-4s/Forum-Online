@@ -53,15 +53,40 @@ class CommentController extends Controller
     public function report(Request $request, Thread $thread, Comment $comment){
         // Pastikan user tidak bisa melaporkan komentarnya sendiri
         $request->validate([
-            'reason' => 'required|string|max:1000',
-        ]);
+        'reportable_id' => 'required|integer',
+        'reportable_type' => 'required|string',
+    ]);
 
-        $comment->update([
-            'is_reported' => true,
-            'report_reason' => $request->reason,
-        ]);
+    $user = Auth::user();
 
-        return redirect()->back()->with('success', 'Komentar telah dilaporkan. Terima kasih atas laporannya.');
+    $modelClass = match ($request->reportable_type) {
+        'thread' => Thread::class,
+        'comment' => Comment::class,
+        default => null,
+    };
+
+    if (!$modelClass) {
+        return back()->withErrors(['Invalid type']);
+    }
+
+    $item = $modelClass::findOrFail($request->reportable_id);
+
+    $report = $item->reports()->where('user_id', $user->id)->first();
+
+    if ($report) {
+        $report->delete();
+    } else {
+        $item->reports()->create([
+            'user_id' => $user->id,
+        ]);
+    }
+
+    // update is_reported untuk thread saja
+    if ($item instanceof Comment) {
+        $item->update(['is_reported' => $item->reports()->exists()]);
+    }
+
+    return back()->with('success', 'Laporan berhasil diupdate.');
     }
 
     public function adminComments(){

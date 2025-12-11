@@ -24,6 +24,12 @@ class Comment extends Model
     {
         return $this->morphMany(Like::class, 'likeable');
     }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
 }
 
 

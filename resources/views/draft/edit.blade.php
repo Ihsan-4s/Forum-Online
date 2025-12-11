@@ -103,7 +103,7 @@
                     {{-- Tag --}}
                     <div class="mb-4">
                         <input type="text" name="tag" class="form-control @error('tag') is-invalid @enderror"
-                            placeholder="#javascript #backend" value="{{ old('tag', $draft->tag) }}">
+                            placeholder="#javascript #backend">
                         @error('tag')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
